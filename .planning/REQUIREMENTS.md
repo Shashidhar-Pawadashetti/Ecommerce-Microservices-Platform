@@ -124,13 +124,61 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmap) | | Pending |
+| CONTR-01 | Phase 1 | Pending |
+| CONTR-02 | Phase 1 | Pending |
+| CONTR-03 | Phase 1 | Pending |
+| CONTR-04 | Phase 1 | Pending |
+| CONTR-05 | Phase 1 | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| CAT-01 | Phase 3 | Pending |
+| CAT-02 | Phase 3 | Pending |
+| CAT-03 | Phase 3 | Pending |
+| CAT-04 | Phase 3 | Pending |
+| CAT-05 | Phase 3 | Pending |
+| CAT-06 | Phase 3 | Pending |
+| CART-01 | Phase 4 | Pending |
+| CART-02 | Phase 4 | Pending |
+| CART-03 | Phase 4 | Pending |
+| CART-04 | Phase 4 | Pending |
+| ORDR-01 | Phase 5 | Pending |
+| ORDR-02 | Phase 5 | Pending |
+| ORDR-03 | Phase 5 | Pending |
+| ORDR-04 | Phase 5 | Pending |
+| ORDR-05 | Phase 5 | Pending |
+| ORDR-06 | Phase 5 | Pending |
+| ORDR-07 | Phase 5 | Pending |
+| ORDR-08 | Phase 5 | Pending |
+| NOTF-01 | Phase 6 | Pending |
+| NOTF-02 | Phase 6 | Pending |
+| GTWY-01 | Phase 7 | Pending |
+| GTWY-02 | Phase 7 | Pending |
+| GTWY-03 | Phase 7 | Pending |
+| GTWY-04 | Phase 7 | Pending |
+| GTWY-05 | Phase 7 | Pending |
+| FRNT-01 | Phase 8 | Pending |
+| FRNT-02 | Phase 8 | Pending |
+| FRNT-03 | Phase 8 | Pending |
+| FRNT-04 | Phase 8 | Pending |
+| FRNT-05 | Phase 8 | Pending |
+| FRNT-06 | Phase 8 | Pending |
+| FRNT-07 | Phase 8 | Pending |
+| ORCH-01 | Phase 9 | Pending |
+| ORCH-02 | Phase 9 | Pending |
+| ORCH-03 | Phase 9 | Pending |
+| ORCH-04 | Phase 9 | Pending |
+| DOCS-01 | Phase 10 | Pending |
+| DOCS-02 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 43 total
-- Mapped to phases: 0
-- Unmapped: 43 ⚠️
+- v1 requirements: 47 total
+- Mapped to phases: 47 ✓
+- Unmapped: 0
+
+> Note: an earlier revision of this file stated "43 total"; recounted during roadmap creation — actual v1 count is 47.
 
 ---
 *Requirements defined: 2026-08-24*
-*Last updated: 2026-08-24 after initial definition*
+*Last updated: 2026-08-24 after roadmap creation (traceability populated)*
