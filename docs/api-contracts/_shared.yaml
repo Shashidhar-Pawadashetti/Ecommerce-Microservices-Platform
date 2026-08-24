@@ -1,0 +1,131 @@
+# =============================================================================
+# Source of truth: THE FILES IN THIS DIRECTORY.
+#   _shared.yaml + *-service.openapi.yaml are hand-authored and authoritative.
+#   NEVER commit generated specs (FastAPI /openapi.json, springdoc /v3/api-docs):
+#   local generation is a development convenience only, and
+#   scripts/check-contracts.sh treats these committed files as canonical at
+#   every phase Verify. API changes start here - never in generated output.
+#
+# Shared OpenAPI components consumed by every service spec via
+#   $ref: './_shared.yaml#/components/...'
+# so the error envelope, bearer scheme, and pagination stay identical across
+# services. This file is a components fragment: it is deliberately NOT matched
+# by the *.openapi.yaml lint glob and is not served by any runtime.
+# =============================================================================
+openapi: "3.0.3"
+info:
+  title: Ecommerce Platform - Shared Contract Components
+  version: "1.0.0"
+  description: >-
+    Cross-service reusable components: security scheme, unified error envelope,
+    reusable error responses, and shared parameters. Service specs reference
+    these components instead of redefining them, keeping failure semantics and
+    wire conventions uniform across the platform.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      # HS256 is pinned by name on BOTH sides - issued by auth-service, verified
+      # by api-gateway - and is never negotiated (decision D-JWT). Canonical
+      # JWT claims table lives in docs/json-interop.md (authored in Plan 03).
+      bearerFormat: JWT
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        Client-supplied idempotency key (ORDR-05). Replays carrying the same
+        key return the original result instead of performing the operation a
+        second time.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 255
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of items returned per page; defaults to 20, capped at 100.
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+    OffsetParam:
+      name: offset
+      in: query
+      required: false
+      description: Number of items skipped from the start of the collection; defaults to 0.
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+  schemas:
+    Error:
+      type: object
+      description: >-
+        Unified error envelope returned by every service on failure. Clients
+        correlate and branch on the machine-readable code; the message is for
+        humans only.
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: >-
+            Machine-readable stable identifier for programmatic handling.
+            Examples: VALIDATION_FAILED, DUPLICATE_EMAIL. Codes are contract -
+            clients branch on them, never on message text.
+        message:
+          type: string
+          description: >-
+            Human-readable summary safe to display. MUST NOT leak internals:
+            no hostnames, stack traces, or driver/database errors.
+      additionalProperties: true
+      # ignore-unknown reader policy: consumers tolerate and skip fields they
+      # do not know, so additive evolution never breaks clients.
+
+  responses:
+    ValidationError:
+      description: Request body or parameters failed validation (code VALIDATION_FAILED).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: VALIDATION_FAILED
+            message: Request validation failed. Check field formats and limits.
+    Unauthorized:
+      description: Missing, malformed, expired, or invalid credentials (code UNAUTHORIZED).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: Authentication required or credentials invalid.
+    NotFound:
+      description: Referenced resource does not exist (code NOT_FOUND).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: The requested resource was not found.
+    Conflict:
+      description: >-
+        Request conflicts with existing state; the Error.code discriminates the
+        concrete conflict (for example DUPLICATE_EMAIL when signup hits an
+        already-registered email address).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: DUPLICATE_EMAIL
+            message: An account with this email already exists.
