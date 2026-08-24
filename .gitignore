@@ -1,1 +1,21 @@
 .opencode
+
+# ── Secrets hygiene: never commit real env files; .env.example is the tracked template ──
+.env
+.env.*
+!.env.example
+
+# ── Dependencies / build artifacts (polyglot: Node, Java/Maven, Python) ──
+node_modules/
+target/
+__pycache__/
+.venv/
+dist/
+build/
+
+# ── Logs & OS noise ──
+*.log
+.DS_Store
+
+# ── Regenerated research cache ──
+.planning/research/.cache/

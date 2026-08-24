@@ -1,0 +1,28 @@
+# EditorConfig — https://editorconfig.org
+# Solves charset/indentation (line endings are governed by .gitattributes).
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown keeps trailing whitespace: two-space line-break convention.
+[*.md]
+trim_trailing_whitespace = false
+
+# Web/YAML family: 2 spaces.
+[*.{yaml,yml,json,js,ts}]
+indent_style = space
+indent_size = 2
+
+# Python: PEP 8 — 4 spaces.
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Makefiles require real tabs for recipe lines.
+[Makefile]
+indent_style = tab

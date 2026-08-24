@@ -1,0 +1,23 @@
+# Line-ending law for this repository.
+# Committed FIRST among content commits so no CRLF-poisoned blob can enter history.
+# Semantics (verified against git-scm.com): `text eol=lf` normalizes to LF on check-in
+# AND forces LF checkout on Windows regardless of the cloner's core.autocrlf setting.
+# A bare `text` attribute would NOT — do not weaken these rules.
+
+# Normalize everything to LF in repo AND working tree, all platforms.
+* text=auto eol=lf
+
+# Windows-only scripts that cmd.exe may misparse with LF (labels/goto).
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets (seed product images land in Phase 3) — never transform.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# Self-documenting explicit entry: Maven wrapper must stay LF everywhere.
+# Redundant with the catch-all but intentional per research Pattern 4.
+mvnw text eol=lf
