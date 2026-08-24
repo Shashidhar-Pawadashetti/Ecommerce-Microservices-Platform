@@ -35,7 +35,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Cross-language JSON interop conventions are documented and checkable by inspection: ISO 8601 dates, integer-cents money, string IDs, unknown-fields-ignored policy
   4. A fresh clone on Windows yields LF line endings everywhere `.gitattributes` governs (shell scripts, `.env`) — no CRLF poisoning is possible at checkout
   5. The pinned version manifest records exact versions for every stack component (Spring Boot/Cloud/JDK, FastAPI/Pydantic, Node LTS, Kafka, Postgres 18, Mongo, Redis, Next.js), and the monorepo skeleton exists (`services/` tree, root README, `.env.example`)
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Repo foundation: pre-freeze sign-off gates, `.gitattributes`-first LF law, monorepo skeleton, `.env.example`
+- [ ] 01-02-PLAN.md — Validation gate (`check-contracts.sh`) + shared components + auth-service contract — the tracer slice proven end-to-end
+- [ ] 01-03-PLAN.md — Pinned version manifest (`docs/versions.md`) + JSON interop conventions (`docs/json-interop.md`)
+- [ ] 01-04-PLAN.md — Catalog + cart service OpenAPI contracts (public reads / protected writes / internal edges)
+- [ ] 01-05-PLAN.md — Orders contract (idempotent checkout, status machine) + Kafka topic contracts (`order.created`, `payment.completed`, email payload)
 
 ### Phase 2: Auth Service
 **Goal**: Users can securely register, log in, and prove who they are via JWT — and the riskiest runtime family (JVM-in-Docker: multi-stage build, memory flags, PG18 volume mount) is proven first, producing templates the order service and gateway copy.
@@ -147,7 +154,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Contracts & Repo Scaffolding | 0/TBD | Not started | - |
+| 1. Contracts & Repo Scaffolding | 0/5 | Not started | - |
 | 2. Auth Service | 0/TBD | Not started | - |
 | 3. Catalog Service | 0/TBD | Not started | - |
 | 4. Cart Service | 0/TBD | Not started | - |
