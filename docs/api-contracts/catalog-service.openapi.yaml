@@ -1,0 +1,464 @@
+# =============================================================================
+# Source of truth: THIS FILE. Do not commit generated specs.
+#   Local generation (FastAPI /openapi.json, springdoc /v3/api-docs) is for
+#   development convenience only; scripts/check-contracts.sh diffs live output
+#   against this file at every phase Verify. Changes to the API start here.
+# =============================================================================
+openapi: "3.0.3"
+
+info:
+  title: Catalog Service API
+  version: "1.0.0"
+  contact:
+    name: Ecommerce Platform Team
+    email: platform-team@example.com
+  description: >-
+    Product catalog for the Ecommerce Platform: public browsing, search,
+    sorting, and pagination for shoppers plus JWT-protected administrative
+    CRUD. Reached through the api-gateway under the /catalog prefix (gateway
+    :8080 proxies /catalog to catalog-service :8000; the full port map is
+    finalized in Phase 7).
+
+    Access matrix (GTWY-03, frozen here and implemented verbatim by the
+    gateway in Phase 7): every GET under /catalog/** is PUBLIC; every
+    mutating operation (POST create, PUT update, DELETE delete) requires a
+    valid HS256-signed bearer token as issued by auth-service and declares
+    bearerAuth per operation below. Two further endpoints are
+    NETWORK-INTERNAL and never routed through the gateway: POST
+    /catalog/products/batch (service-to-service pricing read consumed by
+    cart-service) and GET /health (compose healthcheck probe). Phase 7
+    enforces this mechanically by leaving the catalog-service container
+    port unpublished.
+
+    Wire conventions follow docs/json-interop.md: identifiers are JSON
+    strings regardless of storage types; monetary amounts are integers in
+    minor units with Cents-suffixed field names (priceCents - floats never
+    travel on the wire or in examples); timestamps are ISO 8601 strings
+    with millisecond precision in UTC (Z suffix); optional fields are
+    communicated by omitting the key, never by sending null; receivers
+    ignore unknown properties (reader-side tolerance, writer-side schema
+    discipline).
+
+    Inventory stance: stock is DISPLAY-ONLY in v1. No inventory deduction
+    runs at purchase time (project exclusion), so the figure informs
+    storefront rendering and never gates checkout.
+
+servers:
+  - url: http://localhost:8080/catalog
+    description: api-gateway entrypoint (gateway :8080 proxies /catalog to catalog-service :8000)
+
+tags:
+  - name: Catalog
+    description: Public product browsing and JWT-protected admin CRUD
+  - name: Internal
+    description: Network-internal edges never routed through the api-gateway
+  - name: Health
+    description: Container orchestration probes
+
+security: [] # GTWY-03 default - catalog reads are public; mutating operations declare bearerAuth explicitly
+
+paths:
+  /catalog/products:
+    get:
+      operationId: listProducts
+      summary: Browse, search, sort, and paginate products
+      security: []
+      description: >-
+        Public operation (CAT-01/03/04). Free-text search via q, exact-match
+        category filter, price or name sorting, and limit/offset pagination -
+        pagination is contractual from birth (decision D6), not bolted on
+        later. total reflects the size of the WHOLE filtered collection so
+        clients can compute page counts; items holds at most limit entries.
+      tags: [Catalog]
+      parameters:
+        - name: category
+          in: query
+          required: false
+          description: Exact-match category filter (for example electronics).
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: false
+          description: Free-text search across product names and descriptions.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: Field results are sorted by.
+          schema:
+            type: string
+            enum: [price, name]
+        - name: order
+          in: query
+          required: false
+          description: Direction applied to the sort field; defaults to asc.
+          schema:
+            type: string
+            enum: [asc, desc]
+        - $ref: './_shared.yaml#/components/parameters/LimitParam'
+        - $ref: './_shared.yaml#/components/parameters/OffsetParam'
+      responses:
+        '200':
+          description: One page of products plus collection totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
+              example:
+                total: 128
+                limit: 20
+                offset: 0
+                items:
+                  - id: "prod-1001"
+                    name: Mechanical Keyboard
+                    description: Tenkeyless mechanical keyboard with hot-swappable switches.
+                    category: electronics
+                    priceCents: 12999
+                    stock: 42
+                    imageUrl: "https://cdn.example.com/images/prod-1001.png"
+                    createdAt: "2026-08-24T12:00:00.000Z"
+                  - id: "prod-1002"
+                    name: USB-C Cable
+                    category: accessories
+                    priceCents: 999
+                    stock: 300
+                    createdAt: "2026-08-24T12:05:00.000Z"
+    post:
+      operationId: createProduct
+      summary: Create a product (admin)
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected admin operation (CAT-06): requires a valid bearer token.
+        Creates a catalog product and returns the stored representation.
+        Responds 400 with the shared envelope (code VALIDATION_FAILED) when
+        the body violates the ProductWrite schema, and 401 when the token is
+        missing, expired, or invalid.
+      tags: [Catalog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductWrite'
+            example:
+              name: Wireless Mouse
+              category: electronics
+              priceCents: 2499
+              stock: 15
+      responses:
+        '201':
+          description: Product created; the stored representation is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              example:
+                id: "prod-1010"
+                name: Wireless Mouse
+                category: electronics
+                priceCents: 2499
+                stock: 15
+                createdAt: "2026-08-24T12:10:00.000Z"
+        '400':
+          $ref: './_shared.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+
+  /catalog/products/batch:
+    post:
+      operationId: batchGetProducts
+      summary: Current names and prices for a set of product IDs
+      security: []
+      description: >-
+        NETWORK-INTERNAL service-to-service edge supporting CART-01/CART-02:
+        cart-service calls this BEFORE accepting an add or quantity change so
+        cart lines attach only to real, currently priced products. Despite
+        the POST verb this is a pure read - nothing mutates; POST exists so
+        the ID list travels in a request body instead of the URL. Never
+        routed through the api-gateway and never called by browsers;
+        authorization rests on network placement (Phase 7 leaves the
+        catalog-service port unpublished). Callers keep batches within a
+        reasonable size - the concrete upper bound is a Phase 4
+        implementation concern, while minItems 1 is contractual here.
+      tags: [Internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchPricingRequest'
+            example:
+              productIds: ["prod-1001", "prod-1002"]
+      responses:
+        '200':
+          description: >-
+            CURRENT name and priceCents for every KNOWN identifier, captured
+            at read time. Unknown or retired IDs are silently OMITTED from
+            the response - absence IS the invalidity signal: cart-service
+            treats a missing entry exactly like code UNKNOWN_PRODUCT. An
+            empty array means none of the requested IDs exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatchPricingEntry'
+              example:
+                - productId: "prod-1001"
+                  name: Mechanical Keyboard
+                  priceCents: 12999
+
+  /catalog/products/{id}:
+    get:
+      operationId: getProduct
+      summary: Fetch one product by ID
+      security: []
+      description: >-
+        Public operation (CAT-02) backing the product detail page. Responds
+        404 with the shared envelope (code NOT_FOUND) when no product
+        carries the requested identifier.
+      tags: [Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product identifier (string on the wire per interop Rule 3).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              example:
+                id: "prod-1001"
+                name: Mechanical Keyboard
+                description: Tenkeyless mechanical keyboard with hot-swappable switches.
+                category: electronics
+                priceCents: 12999
+                stock: 42
+                imageUrl: "https://cdn.example.com/images/prod-1001.png"
+                createdAt: "2026-08-24T12:00:00.000Z"
+        '404':
+          $ref: './_shared.yaml#/components/responses/NotFound'
+    put:
+      operationId: updateProduct
+      summary: Replace a product (admin)
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected admin operation (CAT-06): requires a valid bearer token.
+        Full update - the body carries the complete ProductWrite shape and
+        replaces the stored product. Responds 400 (code VALIDATION_FAILED)
+        on schema violations, 404 (code NOT_FOUND) for unknown identifiers,
+        and 401 when credentials fail.
+      tags: [Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product identifier (string on the wire per interop Rule 3).
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductWrite'
+            example:
+              name: Mechanical Keyboard
+              category: electronics
+              priceCents: 11999
+              stock: 40
+              imageUrl: "https://cdn.example.com/images/prod-1001-v2.png"
+      responses:
+        '200':
+          description: Product replaced; the updated representation is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              example:
+                id: "prod-1001"
+                name: Mechanical Keyboard
+                category: electronics
+                priceCents: 11999
+                stock: 40
+                imageUrl: "https://cdn.example.com/images/prod-1001-v2.png"
+                createdAt: "2026-08-24T12:00:00.000Z"
+        '400':
+          $ref: './_shared.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './_shared.yaml#/components/responses/NotFound'
+    delete:
+      operationId: deleteProduct
+      summary: Delete a product (admin)
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected admin operation (CAT-06): requires a valid bearer token.
+        Removes the product from the catalog. Responds 404 (code NOT_FOUND)
+        for unknown identifiers and 401 when credentials fail.
+      tags: [Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product identifier (string on the wire per interop Rule 3).
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Product removed; no body returned.
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './_shared.yaml#/components/responses/NotFound'
+
+  /health:
+    get:
+      operationId: health
+      summary: Liveness probe for container orchestration
+      security: []
+      description: >-
+        NETWORK-INTERNAL healthcheck probe invoked by Docker Compose; never
+        routed through the api-gateway (Phase 7 keeps this path out of the
+        gateway route table). Returns 200 with a status field while the
+        service is up.
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    description: Literal ok while liveness holds.
+                additionalProperties: true
+              example:
+                status: ok
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './_shared.yaml#/components/securitySchemes/bearerAuth'
+
+  schemas:
+    Product:
+      type: object
+      required: [id, name, category, priceCents, stock, createdAt]
+      properties:
+        id:
+          type: string
+          description: Stable product identifier; strings on the wire per interop Rule 3 regardless of MongoDB ObjectId storage.
+        name:
+          type: string
+        description:
+          type: string
+          description: Long-form copy. Optional - omitted entirely when empty, never null (interop Rule 4).
+        category:
+          type: string
+        priceCents:
+          type: integer
+          minimum: 0
+          description: Unit price in integer cents (interop Rule 2); floats never appear on the wire or in examples.
+        stock:
+          type: integer
+          minimum: 0
+          description: Display-only availability figure rendered by the storefront; no inventory deduction runs in v1.
+        imageUrl:
+          type: string
+          description: URL-shaped (http/https) product image location. Optional; the URI format stays deliberately undeclared until seed assets land in Phase 3. Omitted when absent.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp, ISO 8601 with millisecond precision in UTC (interop Rule 1).
+      additionalProperties: true
+
+    ProductWrite:
+      type: object
+      required: [name, category, priceCents]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          description: Optional long-form copy; send it as a normal string or omit the key - null is forbidden (interop Rule 4).
+        category:
+          type: string
+          minLength: 1
+        priceCents:
+          type: integer
+          minimum: 0
+          description: Unit price in integer cents; negative values are rejected with VALIDATION_FAILED.
+        stock:
+          type: integer
+          minimum: 0
+          description: Display-only availability figure; stored as 0 when omitted. Never decremented at purchase time in v1.
+        imageUrl:
+          type: string
+          description: URL-shaped (http/https) image location; omitted when absent.
+      additionalProperties: true
+
+    ProductList:
+      type: object
+      required: [items, total, limit, offset]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        total:
+          type: integer
+          minimum: 0
+          description: Size of the whole filtered collection, independent of paging - clients derive page counts from it.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Effective page size, echoing the limit request parameter (default 20, cap 100).
+        offset:
+          type: integer
+          minimum: 0
+          description: Effective number of skipped entries, echoing the offset request parameter.
+      additionalProperties: true
+
+    BatchPricingRequest:
+      type: object
+      required: [productIds]
+      properties:
+        productIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: Product identifiers to price; at least one entry is contractual. The upper batch-size bound is a Phase 4 implementation concern.
+      additionalProperties: true
+
+    BatchPricingEntry:
+      type: object
+      required: [productId, name, priceCents]
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+          description: Current catalog display name at read time.
+        priceCents:
+          type: integer
+          minimum: 0
+          description: CURRENT unit price in integer cents at read time - the value cart validation and cart totals must agree with.
+      additionalProperties: true
