@@ -1,0 +1,16 @@
+# Spectral ruleset for docs/api-contracts/*.openapi.yaml
+#
+# Extends the built-in OpenAPI ruleset. scripts/check-contracts.sh lints at
+# --fail-severity=warn, so ANY finding at warn or above fails the gate —
+# warnings are fatal here by design (Pitfall 3: warnings ignored "temporarily").
+extends: ['spectral:oas']
+rules:
+  # Contracts must speak for fresh-context implementers: every spec carries a
+  # substantive top-level description (JWT conventions, security notes, D-notes).
+  info-description-required:
+    description: Every API contract must carry a non-empty info.description.
+    message: info.description must be present and non-empty — the contract is the only thing a fresh-context implementer reads.
+    severity: warn
+    given: $.info.description
+    then:
+      function: truthy
