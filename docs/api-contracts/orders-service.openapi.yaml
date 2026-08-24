@@ -1,0 +1,387 @@
+# =============================================================================
+# Source of truth: THIS FILE. Do not commit generated specs.
+#   Local generation (springdoc /v3/api-docs) is for development convenience
+#   only; scripts/check-contracts.sh treats this committed file as canonical
+#   at every phase Verify. Changes to the API start here.
+#
+# Decisions frozen here:
+#   D-01  canonical status enum PENDING_PAYMENT | PAID | PAYMENT_FAILED -
+#         requirement text wins over ARCHITECTURE.md's older shorter spelling,
+#         which is superseded repo-wide.
+#   D-05  first checkout returns 201; replaying the same Idempotency-Key
+#         returns 200 with the ORIGINAL order - the codes distinguish
+#         creation from replay honestly.
+#   D-checkout-source
+#         POST /orders carries NO items body - contents come from the
+#         caller's live cart via the internal read and are snapshotted
+#         (items AND prices) at creation.
+# =============================================================================
+openapi: "3.0.3"
+
+info:
+  title: Orders Service API
+  version: "1.0.0"
+  contact:
+    name: Ecommerce Platform Team
+    email: platform-team@example.com
+  description: >-
+    Checkout and order lifecycle for the Ecommerce Platform: idempotent
+    checkout, order history, and the status-polling endpoint the frontend
+    uses to detect terminal states. Reached through the api-gateway under
+    the /orders prefix (gateway :8080 proxies /orders to order-service
+    :8082; the full port map is finalized in Phase 7).
+
+    Access matrix (frozen here and transcribed verbatim by the gateway in
+    Phase 7): all three order operations require a valid HS256-signed
+    bearer token as issued by auth-service and declare bearerAuth per
+    operation below. Caller identity derives EXCLUSIVELY from the verified
+    JWT sub claim - clients never assert a userId in a body or query
+    parameter, and an order belonging to another user is indistinguishable
+    from a nonexistent one (404 - no existence leak). GET /health alone is
+    PUBLIC yet NETWORK-INTERNAL (compose healthcheck probe), never routed
+    through the gateway; Phase 7 enforces this mechanically by leaving the
+    order-service container port unpublished.
+
+    Checkout source of truth (D-checkout-source): POST /orders takes NO
+    request body. Contents come from the caller's LIVE cart, read
+    network-internally from cart-service (GET /cart/{userId}), and the
+    order SNAPSHOTS items AND prices at creation time - later catalog
+    price changes or product edits never alter an existing order. After
+    persisting, order-service publishes the order.created event to Kafka
+    (ORDR-02); the full event contract lives in docs/kafka-topics.md and
+    its payload field names mirror this spec's schemas exactly.
+
+    Status machine (D-01): canonical statuses are PENDING_PAYMENT, PAID,
+    and PAYMENT_FAILED - the bare shorter spelling found in older planning
+    sketches is superseded. Transitions PENDING_PAYMENT -> PAID and
+    PENDING_PAYMENT -> PAYMENT_FAILED are driven exclusively by
+    consumption of payment.completed events under terminal-state guards
+    (ORDR-04): once an order is terminal, further deliveries of either
+    outcome are acknowledged and ignored, keeping the consumer idempotent
+    under at-least-once redelivery.
+
+    Replay semantics (D-05): the first checkout with a given
+    Idempotency-Key returns 201 Created; replaying the SAME key returns
+    200 with the ORIGINAL order body and creates nothing - no duplicate
+    order, no duplicate event, no duplicate email.
+
+    Wire conventions follow docs/json-interop.md: identifiers are JSON
+    strings regardless of storage types; monetary amounts are integers in
+    minor units with Cents-suffixed field names (floats never travel on
+    the wire or in examples); timestamps are ISO 8601 strings with
+    millisecond precision in UTC (Z suffix); optional fields are
+    communicated by omitting the key, never by sending null; receivers
+    ignore unknown properties (reader-side tolerance, writer-side schema
+    discipline).
+
+servers:
+  - url: http://localhost:8080/orders
+    description: api-gateway entrypoint (gateway :8080 proxies /orders to order-service :8082)
+
+tags:
+  - name: Orders
+    description: JWT-protected checkout and order lifecycle
+  - name: Health
+    description: Container orchestration probes
+
+paths:
+  /orders:
+    post:
+      operationId: createOrder
+      summary: Check out the caller's cart into an order (idempotent)
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (ORDR-01/05). Deliberately takes NO request
+        body: contents are sourced from the caller's live cart via the
+        network-internal read GET /cart/{userId}, validated (an empty cart
+        is rejected), and SNAPSHOTTED - items and prices alike - into the
+        new order, so the order is immune to later catalog changes. The
+        Idempotency-Key header is REQUIRED (ORDR-05): the first call
+        persists the order, publishes order.created to Kafka after the
+        commit (ORDR-02), triggers cart clearing (ORDR-06), and answers
+        201; a replay carrying the SAME key performs none of those steps
+        again and answers 200 with the original order (D-05). Responds
+        400 with the shared envelope (code VALIDATION_FAILED) when the
+        cart is empty or the header is missing or malformed, and 401 when
+        the token fails verification.
+      tags: [Orders]
+      parameters:
+        - $ref: './_shared.yaml#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: >-
+            Order created from the cart snapshot; the initial status is
+            PENDING_PAYMENT (D-01). Location names the new order resource.
+          headers:
+            Location:
+              description: Path of the created order (for example /orders/ord-1001).
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSnapshot'
+              example:
+                orderId: "ord-1001"
+                userId: "usr-42"
+                status: PENDING_PAYMENT
+                items:
+                  - productId: "prod-1001"
+                    nameSnapshot: Mechanical Keyboard
+                    unitPriceCents: 12999
+                    quantity: 1
+                  - productId: "prod-1002"
+                    nameSnapshot: USB-C Cable
+                    unitPriceCents: 999
+                    quantity: 2
+                totalCents: 14997
+                currency: USD
+                createdAt: "2026-08-24T12:15:00.000Z"
+        '200':
+          description: >-
+            IDEMPOTENT REPLAY (D-05): this Idempotency-Key was seen
+            before, so the ORIGINAL order is returned unchanged and no
+            duplicate order, event, or email is produced. The body schema
+            is identical to the 201 case; only the status code differs,
+            so clients can tell creation from replay at the HTTP level.
+          headers:
+            Location:
+              description: Path of the ORIGINAL order resource.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSnapshot'
+              example:
+                orderId: "ord-1001"
+                userId: "usr-42"
+                status: PENDING_PAYMENT
+                items:
+                  - productId: "prod-1001"
+                    nameSnapshot: Mechanical Keyboard
+                    unitPriceCents: 12999
+                    quantity: 1
+                  - productId: "prod-1002"
+                    nameSnapshot: USB-C Cable
+                    unitPriceCents: 999
+                    quantity: 2
+                totalCents: 14997
+                currency: USD
+                createdAt: "2026-08-24T12:15:00.000Z"
+        '400':
+          $ref: './_shared.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+    get:
+      operationId: listOrders
+      summary: List the caller's order history
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (ORDR-07). Returns the caller's order history,
+        filtered SERVER-SIDE by the token's sub owner - the client cannot
+        widen the selection. Entries carry the scanning-relevant subset
+        only; fetch full detail (including live status for terminal-state
+        detection) via getOrder.
+      tags: [Orders]
+      responses:
+        '200':
+          description: Order history for the owning user, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderList'
+              example:
+                items:
+                  - orderId: "ord-1001"
+                    status: PENDING_PAYMENT
+                    totalCents: 14997
+                    createdAt: "2026-08-24T12:15:00.000Z"
+                total: 1
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      summary: Fetch one order by ID (the frontend's polling endpoint)
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (ORDR-07). Returns full order detail INCLUDING
+        status - this is THE polling endpoint: after checkout the frontend
+        re-reads it until the status turns terminal (PAID or
+        PAYMENT_FAILED). Ownership is enforced server-side against the
+        token's sub: an order belonging to another user answers 404
+        exactly like a missing one. Responds 404 with the shared envelope
+        (code NOT_FOUND) for unknown identifiers and 401 when credentials
+        fail.
+      tags: [Orders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Order identifier (string on the wire per interop Rule 3).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested order with its CURRENT status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSnapshot'
+              example:
+                orderId: "ord-1001"
+                userId: "usr-42"
+                status: PAID
+                items:
+                  - productId: "prod-1001"
+                    nameSnapshot: Mechanical Keyboard
+                    unitPriceCents: 12999
+                    quantity: 1
+                  - productId: "prod-1002"
+                    nameSnapshot: USB-C Cable
+                    unitPriceCents: 999
+                    quantity: 2
+                totalCents: 14997
+                currency: USD
+                createdAt: "2026-08-24T12:15:00.000Z"
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './_shared.yaml#/components/responses/NotFound'
+
+  /health:
+    get:
+      operationId: health
+      summary: Liveness probe for container orchestration
+      security: []
+      description: >-
+        NETWORK-INTERNAL healthcheck probe invoked by Docker Compose
+        against the order-service container port (:8082); never routed
+        through the api-gateway (Phase 7 keeps this path out of the
+        gateway route table). Returns 200 with a status field while the
+        service is up.
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    description: Literal ok while liveness holds.
+                additionalProperties: true
+              example:
+                status: ok
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './_shared.yaml#/components/securitySchemes/bearerAuth'
+
+  schemas:
+    OrderStatus:
+      type: string
+      enum: [PENDING_PAYMENT, PAID, PAYMENT_FAILED]
+      description: >-
+        Canonical order lifecycle states (D-01 spellings - the bare
+        shorter form in older sketches is superseded repo-wide). Creation
+        always lands in PENDING_PAYMENT. The transitions PENDING_PAYMENT
+        -> PAID and PENDING_PAYMENT -> PAYMENT_FAILED are driven solely
+        by payment.completed consumption (Phase 5 saga) under
+        terminal-state guards (ORDR-04): PAID and PAYMENT_FAILED are
+        TERMINAL - once reached, further deliveries of either outcome are
+        acknowledged and ignored, so redelivered events under
+        at-least-once semantics change nothing.
+
+    OrderItem:
+      type: object
+      required: [productId, nameSnapshot, unitPriceCents, quantity]
+      properties:
+        productId:
+          type: string
+          description: Catalog product identifier (string on the wire per interop Rule 3).
+        nameSnapshot:
+          type: string
+          description: Catalog display name FROZEN at purchase time; later renames never rewrite order history.
+        unitPriceCents:
+          type: integer
+          minimum: 0
+          description: Unit price in integer cents (interop Rule 2) SNAPSHOT at creation; later catalog repricing never alters an existing order.
+        quantity:
+          type: integer
+          minimum: 1
+          description: Units purchased; always at least 1.
+      additionalProperties: true
+
+    OrderSnapshot:
+      type: object
+      required: [orderId, userId, status, items, totalCents, currency, createdAt]
+      properties:
+        orderId:
+          type: string
+          description: Stable order identifier; string on the wire per interop Rule 3 regardless of storage type.
+        userId:
+          type: string
+          description: Owning user; equals the verified JWT sub of the checkout caller.
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          description: Immutable purchase-time snapshot of the cart contents.
+        totalCents:
+          type: integer
+          minimum: 0
+          description: Order total in integer cents (interop Rule 2); the sum of unitPriceCents x quantity across items at creation time.
+        currency:
+          type: string
+          description: ISO 4217 currency code (for example USD) traveling beside the total.
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp, ISO 8601 with millisecond precision in UTC (interop Rule 1).
+      additionalProperties: true
+
+    OrderSummary:
+      type: object
+      required: [orderId, status, totalCents, createdAt]
+      properties:
+        orderId:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        totalCents:
+          type: integer
+          minimum: 0
+          description: Order total in integer cents (interop Rule 2).
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp, ISO 8601 with millisecond precision in UTC (interop Rule 1).
+      additionalProperties: true
+
+    OrderList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderSummary'
+          description: The caller's orders, newest first.
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of the caller's orders, independent of any rendering window.
+      additionalProperties: true
