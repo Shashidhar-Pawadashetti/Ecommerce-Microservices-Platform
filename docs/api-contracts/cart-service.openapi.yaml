@@ -1,0 +1,392 @@
+# =============================================================================
+# Source of truth: THIS FILE. Do not commit generated specs.
+#   Local generation (Express route docs, hand-rolled reflection) is for
+#   development convenience only; scripts/check-contracts.sh treats this
+#   committed file as canonical at every phase Verify. Changes to the API
+#   start here.
+# =============================================================================
+openapi: "3.0.3"
+
+info:
+  title: Cart Service API
+  version: "1.0.0"
+  contact:
+    name: Ecommerce Platform Team
+    email: platform-team@example.com
+  description: >-
+    Shopping cart for the Ecommerce Platform, reached through the api-gateway
+    under the /cart prefix (gateway :8080 proxies /cart to cart-service :3001;
+    the full port map is finalized in Phase 7).
+
+    Frozen semantics (decisions D-02, D-04, D-identity, D-totals):
+
+    - Storage: one cart per user under the Redis key cart:{userId}; the cart
+      TTL is touched on EVERY mutation, so abandoned carts expire after the
+      configurable window (requirements CART-03/CART-04) instead of living
+      forever.
+
+    - Identity: derived EXCLUSIVELY from the verified JWT sub claim resolved
+      server-side. Request bodies carry NO identity fields - there is no
+      client-supplied userId on any user-facing operation (threat T-04-01
+      mitigation).
+
+    - Totals: clients send productId and quantity ONLY. unitPriceCents,
+      lineTotalCents, and grandTotalCents exist solely in RESPONSE schemas
+      and are recomputed SERVER-SIDE from LIVE catalog prices at read time
+      (threat T-04-02 mitigation); unexpected request fields are ignored per
+      interop Rule 5 and can never influence pricing.
+
+    - Removal: DELETE-only per decision D-04. Quantity zero is INVALID and
+      rejected with VALIDATION_FAILED; removing a line happens exclusively
+      through DELETE /cart/items/{productId}.
+
+    - Authorization: EVERY operation requires a valid HS256-signed bearer
+      token except GET /health, which compose probes directly. The one place
+      a userId appears off the token is the NETWORK-INTERNAL checkout read
+      GET /cart/{userId}, where the caller is order-service presenting its
+      own credentials; that operation is excluded from the gateway route
+      table in Phase 7.
+
+    Wire conventions follow docs/json-interop.md: string IDs, integer-cents
+    money (floats never travel on the wire or in examples), ISO 8601
+    timestamps with millisecond precision in UTC, optional = absent key,
+    receivers ignore unknown properties.
+
+servers:
+  - url: http://localhost:8080/cart
+    description: api-gateway entrypoint (gateway :8080 proxies /cart to cart-service :3001); the internal checkout read GET /cart/{userId} stays reachable only inside the compose network
+
+tags:
+  - name: Cart
+    description: JWT-protected cart mutations and reads for the authenticated shopper
+  - name: Internal
+    description: Network-internal edges never routed through the api-gateway
+  - name: Health
+    description: Container orchestration probes
+
+security: [] # default; every Cart operation declares bearerAuth explicitly - all require a valid token except GET /health
+
+paths:
+  /cart:
+    get:
+      operationId: getCart
+      summary: Return the caller's current cart with live-priced totals
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (CART-03): identity comes from the token sub.
+        Line and grand totals are computed from CURRENT catalog prices at
+        read time, so the view always reflects live pricing even while items
+        sit in Redis. Returns an empty items array once the cart has expired
+        or before the first addition.
+      tags: [Cart]
+      responses:
+        '200':
+          description: The caller's cart, priced server-side from live catalog data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartView'
+              example:
+                userId: "550e8400-e29b-41d4-a716-446655440000"
+                items:
+                  - productId: "prod-1001"
+                    name: Mechanical Keyboard
+                    quantity: 2
+                    unitPriceCents: 12999
+                    lineTotalCents: 25998
+                  - productId: "prod-1002"
+                    name: USB-C Cable
+                    quantity: 1
+                    unitPriceCents: 999
+                    lineTotalCents: 999
+                grandTotalCents: 26997
+                currency: "USD"
+                updatedAt: "2026-08-24T12:30:00.000Z"
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+    delete:
+      operationId: clearCart
+      summary: Empty the entire cart
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (ORDR-06 support): removes every line and resets
+        the TTL window. Dual-purpose by contract - order-service calls it
+        network-internally after successful checkout, forwarding the SAME
+        user bearer token presented at checkout so ownership still derives
+        from that sub, and the same endpoint serves the user-facing
+        clear-cart action. Idempotent: clearing an already-empty cart still
+        returns 204.
+      tags: [Cart]
+      responses:
+        '204':
+          description: Cart emptied (or already empty); no body returned.
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+
+  /cart/items:
+    post:
+      operationId: addItem
+      summary: Add a product line to the cart
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (CART-01): body carries productId and quantity
+        ONLY - never prices, never identity. The referenced product is
+        validated against Catalog BEFORE acceptance via the network-internal
+        POST /catalog/products/batch edge; an identifier absent from the
+        response is treated as UNKNOWN_PRODUCT (404). A quantity below the
+        floor of 1, or any other schema violation, yields VALIDATION_FAILED
+        (400). Acceptance refreshes the cart TTL.
+      tags: [Cart]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddItem'
+            example:
+              productId: "prod-1001"
+              quantity: 2
+      responses:
+        '200':
+          description: Line added; the refreshed cart is returned with recomputed totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartView'
+        '400':
+          $ref: './_shared.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/UnknownProduct'
+
+  /cart/items/{productId}:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        description: Identifier of the cart line's product (string on the wire per interop Rule 3).
+        schema:
+          type: string
+    patch:
+      operationId: updateItem
+      summary: Set a cart line's quantity
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (CART-02): replaces the line's quantity. Zero
+        and negative values are REJECTED with VALIDATION_FAILED per decision
+        D-04 - line removal happens exclusively through the DELETE verb on
+        this same path. Responds 404 with code LINE_NOT_IN_CART when the
+        product exists but no matching line is in the cart, and code
+        UNKNOWN_PRODUCT when the product does not exist in the catalog at
+        all. Mutation refreshes the cart TTL.
+      tags: [Cart]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQuantity'
+            example:
+              quantity: 3
+      responses:
+        '200':
+          description: Quantity applied; the refreshed cart is returned with recomputed totals.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartView'
+        '400':
+          $ref: './_shared.yaml#/components/responses/ValidationError'
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          description: Product unknown (code UNKNOWN_PRODUCT) or line not present in the cart (code LINE_NOT_IN_CART) - discriminate on Error.code.
+          content:
+            application/json:
+              schema:
+                $ref: './_shared.yaml#/components/schemas/Error'
+              examples:
+                unknownProduct:
+                  value:
+                    code: UNKNOWN_PRODUCT
+                    message: Product not found.
+                lineNotInCart:
+                  value:
+                    code: LINE_NOT_IN_CART
+                    message: Cart line not found.
+    delete:
+      operationId: removeItem
+      summary: Remove a cart line
+      security:
+        - bearerAuth: []
+      description: >-
+        Protected operation (CART-02): deletes the line whose product
+        matches the path parameter. IDEMPOTENT by contract - removing a line
+        that is not currently in the cart still returns 204, because the
+        desired end state already holds. 404 UNKNOWN_PRODUCT is reserved for
+        identifiers that do not exist in the catalog at all. Mutation
+        refreshes the cart TTL.
+      tags: [Cart]
+      responses:
+        '204':
+          description: Line removed (or already absent); no body returned.
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/UnknownProduct'
+
+  /cart/{userId}:
+    get:
+      operationId: getCartForUser
+      summary: Snapshot a user's cart for checkout (internal)
+      security:
+        - bearerAuth: []
+      description: >-
+        NETWORK-INTERNAL checkout read consumed by order-service to snapshot
+        items and prices at checkout time (supports ORDR-01): the caller
+        presents its own valid bearer token and addresses the target cart by
+        the {userId} path parameter - the single sanctioned exception to
+        sub-derived identity, reachable only inside the compose network and
+        EXCLUDED from the api-gateway route table (Phase 7 enforces
+        mechanically). Path spelling locked singular by contract decision
+        D-02; the historical plural /carts variant is superseded and dead.
+        Responds 404 when no live cart exists for the requested owner.
+      tags: [Internal]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Owner of the cart being snapshotted (string on the wire per interop Rule 3).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The user's current cart, priced server-side from live catalog data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartView'
+        '401':
+          $ref: './_shared.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './_shared.yaml#/components/responses/NotFound'
+
+  /health:
+    get:
+      operationId: health
+      summary: Liveness probe for container orchestration
+      security: []
+      description: >-
+        NETWORK-INTERNAL healthcheck probe invoked by Docker Compose; never
+        routed through the api-gateway (Phase 7 keeps this path out of the
+        gateway route table). Returns 200 with a status field while the
+        service is up.
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    description: Literal ok while liveness holds.
+                additionalProperties: true
+              example:
+                status: ok
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './_shared.yaml#/components/securitySchemes/bearerAuth'
+
+  schemas:
+    AddItem:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: string
+          minLength: 1
+          description: Catalog product to add; validated against the live catalog before acceptance.
+        quantity:
+          type: integer
+          minimum: 1
+          description: Units to add; the floor of 1 is contractual (D-04). Identity and price fields are deliberately ABSENT from this schema - the server owns both.
+      additionalProperties: true
+
+    UpdateQuantity:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          description: New absolute quantity for the line. Zero and negatives are INVALID (VALIDATION_FAILED) per D-04 - removal is DELETE-only.
+      additionalProperties: true
+
+    CartLine:
+      type: object
+      required: [productId, name, quantity, unitPriceCents, lineTotalCents]
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+          description: Current catalog display name at read time.
+        quantity:
+          type: integer
+          minimum: 1
+        unitPriceCents:
+          type: integer
+          minimum: 0
+          description: Current catalog unit price applied at READ time; never client-supplied (T-04-02 mitigation).
+        lineTotalCents:
+          type: integer
+          minimum: 0
+          description: quantity x unitPriceCents, computed server-side.
+      additionalProperties: true
+
+    CartView:
+      type: object
+      required: [userId, items, grandTotalCents, currency, updatedAt]
+      properties:
+        userId:
+          type: string
+          description: Owner echo - the token sub on user-facing operations, the path parameter on the internal checkout read.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartLine'
+          description: Cart lines; empty when the cart holds nothing.
+        grandTotalCents:
+          type: integer
+          minimum: 0
+          description: Sum of lineTotalCents across items, recomputed server-side from LIVE catalog prices at read time.
+        currency:
+          type: string
+          description: ISO 4217 code accompanying all money fields; a single platform-wide currency (USD) in v1.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last-mutation timestamp, ISO 8601 milliseconds UTC - also the TTL anchor, since every mutation refreshes the Redis expiry (CART-03/04 abandoned-cart expiry).
+      additionalProperties: true
+
+  responses:
+    UnknownProduct:
+      description: Referenced product does not exist in the catalog (code UNKNOWN_PRODUCT).
+      content:
+        application/json:
+          schema:
+            $ref: './_shared.yaml#/components/schemas/Error'
+          example:
+            code: UNKNOWN_PRODUCT
+            message: Product not found.
