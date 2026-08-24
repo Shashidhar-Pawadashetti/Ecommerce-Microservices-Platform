@@ -1,0 +1,14 @@
+# ══════════════════════════════════════════════════════════════════════
+#  Ecommerce Microservices Platform — Docker Compose
+#
+#  This file GROWS INCREMENTALLY STARTING PHASE 2 per build plan §4:
+#    • Phase 2 adds shared infrastructure (Kafka KRaft, PostgreSQL,
+#      MongoDB, Redis, Mailpit, Kafka UI)
+#    • Phases 3–8 add each application service as it is built
+#    • Phase 9 completes healthchecks, memory limits, and smoke-test
+#      wiring so `docker compose up` runs the entire system
+#
+#  Phase 1 ships this header comment ONLY — no service keys yet.
+#
+#  Environment: values come from .env (copy from .env.example).
+# ══════════════════════════════════════════════════════════════════════
