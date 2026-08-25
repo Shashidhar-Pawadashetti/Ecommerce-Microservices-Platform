@@ -69,7 +69,7 @@ Plans:
   4. Logout behaves as the documented client-side token discard (no server revocation in v1), stated in the service's docs
   5. The auth container builds via multi-stage Dockerfile, runs as its own docker-compose entry with a passing healthcheck, and passes a standalone curl smoke test (signup → login → `/me`)
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -78,7 +78,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Signup vertical: bcrypt signup + duplicate rejection + contracted error envelopes (AUTH-01)
+- [x] 02-02-PLAN.md — Signup vertical: bcrypt signup + duplicate rejection + contracted error envelopes (AUTH-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -211,7 +211,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
-| 2. Auth Service | 1/4 | In Progress|  |
+| 2. Auth Service | 2/4 | In Progress|  |
 | 3. Catalog Service | 0/TBD | Not started | - |
 | 4. Cart Service | 0/TBD | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |

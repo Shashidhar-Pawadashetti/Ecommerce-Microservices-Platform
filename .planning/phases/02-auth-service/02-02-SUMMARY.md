@@ -210,3 +210,7 @@ None — every component is fully wired: real repository, real bcrypt encoder, r
 ---
 *Phase: 02-auth-service*
 *Completed: 2026-08-25*
+
+## Self-Check: PASSED
+
+All 10 created files exist on disk; all 5 commits (934aedc, 692e761, 75e69dd, 75b9631, 5772e9c) present in git log. Plan-level verification re-run this session: `./mvnw test` 9/9 green (unit slice Docker-free + Testcontainers postgres:18 integration), `scripts/check-contracts.sh` pass.

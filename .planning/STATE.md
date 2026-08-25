@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Auth Service
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-08-25T17:07:25.427Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-08-25T17:38:26.427Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: 1f5586a4e79bb5bcdc0b8d16d5b423f47f591738
+state_head: 5772e9c3fe78ea828382059588f97e7c35383732
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 10
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 02 (Auth Service) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 02 execution started
 
@@ -59,6 +59,7 @@ Progress: [█░░░░░░░░░] 10%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 02 P01 | 22min | 2 tasks | 10 files |
+| Phase 02 P02 | 15min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Auth-service skeleton: wrapper via host Maven 3.9.12 (only-script type); compose uses single-word SPRING_DATASOURCE_* spellings (relaxed-binding correction vs research draft)
 - [Phase 02]: D-02 read literally in compose: POSTGRES_DB=users only; Phase-5 initdb.d obligation (init-script backfill + one-time CREATE DATABASE) recorded as compose comment
 - [Phase 02]: A4 disposition held: release-21 bytecode targeting on host JDK 23.0.1; A2 (mem_limit effective, Memory=536870912) and A5 (BusyBox wget -qO- healthcheck) empirically confirmed
+- [Phase 02]: Surefire UTC pin: pgjdbc transmits host TZ at connect; postgres:18 tzdata rejects legacy names - test JVMs pinned UTC (Rule 3, template for later slices)
+- [Phase 02]: Two-layer race-safe duplicate detection: findByEmail fast signal + users_email_uniq DataIntegrityViolation translation to identical 409 envelope (AUTH-01)
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T17:06:52.569Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-08-25T17:37:45.988Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
