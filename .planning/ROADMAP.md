@@ -69,7 +69,20 @@ Plans:
   4. Logout behaves as the documented client-side token discard (no server revocation in v1), stated in the service's docs
   5. The auth container builds via multi-stage Dockerfile, runs as its own docker-compose entry with a passing healthcheck, and passes a standalone curl smoke test (signup → login → `/me`)
 
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Maven scaffold + JVM-in-Docker tracer: Boot 3.5.16 build, Flyway V1 on PG18, healthy compose pair (SC-5)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — Auth flows: bcrypt signup + duplicate rejection, HS256 login with anti-enumeration, authenticated /me (AUTH-01..03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-03-PLAN.md — Standalone smoke script + README logout policy + full phase verification gate (AUTH-04, SC-5)
 
 ### Phase 3: Catalog Service
 
@@ -194,7 +207,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
-| 2. Auth Service | 0/TBD | Not started | - |
+| 2. Auth Service | 0/3 | Not started | - |
 | 3. Catalog Service | 0/TBD | Not started | - |
 | 4. Cart Service | 0/TBD | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
