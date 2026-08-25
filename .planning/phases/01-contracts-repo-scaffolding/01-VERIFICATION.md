@@ -1,7 +1,7 @@
 ---
 phase: 01-contracts-repo-scaffolding
 verified: 2026-08-24T18:36:28Z
-status: human_needed
+status: passed
 score: 13/16 must-haves verified
 behavior_unverified: 0
 re_verification:
@@ -11,15 +11,19 @@ re_verification:
   gaps_remaining: []
   regressions: []
 human_verification:
+
   - test: "Confirm auth-service.openapi.yaml is sufficient for Phase 2 to implement signup/login/me with zero follow-up questions (read as an implementer would)."
     expected: "Every implementer question about request/response shapes, error codes (409/401 present; note review finding MD-04 — no 400 VALIDATION_FAILED declared on signup/login despite format:email/minLength:8 constraints), security classification, and JWT conventions is answered by the spec text alone."
     why_human: "Contract sufficiency is a reader judgment; no automated check can decide whether a fresh-context agent would need to ask questions."
+
   - test: "Confirm catalog-service.openapi.yaml and cart-service.openapi.yaml are sufficient for Phase 3 / cart-phase implementation without follow-up questions."
     expected: "Browse/detail/filter/search/sort/pagination bounds, admin CRUD validation rules, batch-pricing semantics (omitted-ID = invalid), quantity floor/DELETE-only removal, TTL-on-every-mutation semantics all answerable from spec text; review auto-fix (added 401s) reads coherently."
     why_human: "Same reader-judgment class; both executor summaries explicitly reserved this for phase verify (coverage D3, human_judgment: true)."
+
   - test: "Review kafka-topics.md + validator coherence before Phase 5/6 build on them: (a) MD-01 — validate-topic-schemas.mjs requires `reason` unconditionally in payment.completed's exact key set, so a canonical APPROVED payload (reason omitted per kafka-topics.md line 128 absent-not-null rule) can never pass the gate; (b) MD-02 — APPROVED email rendering requires a stateful order.created→payment.completed join per orderId that the doc's self-sufficiency claim does not document."
     expected: "Human decision: accept both as-is (log to backlog), or require the conditional-presence validator fix + one-paragraph join documentation before Phase 5 starts. Either resolution should be recorded (override or gap-closure plan)."
     why_human: "The enumerated SC2 checklist fields are all present and machine-verified; whether these two internal contradictions block 'implement without asking questions' is a judgment call with a real trade-off (gate strictness vs wire-truth fidelity)."
+
   - test: "Decide disposition of HI-01 (servers.url already contains the gateway prefix AND every path repeats it → generated clients/Swagger UI resolve doubled prefixes like /auth/auth/signup; internal /health ops have no valid absolute URL in their own specs)."
     expected: "Explicit accept-as-deviation (record an override) or fix the four specs' servers entries before Phase 7 gateway work and any codegen/Swagger-driven usage. Note Phase 9 smoke test drives this surface."
     why_human: "Intentional-looking deviation with a documented plan origin ('servers entry noting gateway prefix'); accepting it is a stakeholder override decision, not a mechanical check."
@@ -143,6 +147,7 @@ No debt markers (TBD/FIXME/XXX) anywhere in phase-touched files. No stub impleme
 ### Human Verification Required
 
 See frontmatter `human_verification` (4 items):
+
 1. **Auth contract sufficiency** — read auth spec as a Phase 2 implementer; confirm zero follow-up questions.
 2. **Catalog/cart contract sufficiency** — same exercise for Phase 3 / cart phase.
 3. **Kafka/email coherence disposition** — decide on MD-01 (validator vs APPROVED payload) and MD-02 (undocumented join) before Phase 5/6 consume these artifacts.

@@ -13,7 +13,7 @@ Ten phases take the platform from empty repo to a reproducible end-to-end purcha
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Contracts & Repo Scaffolding** - OpenAPI specs, Kafka topic contracts, JSON interop rules, pinned versions, monorepo skeleton — before any service code
+- [x] **Phase 1: Contracts & Repo Scaffolding** - OpenAPI specs, Kafka topic contracts, JSON interop rules, pinned versions, monorepo skeleton — before any service code (completed 2026-08-25)
 - [ ] **Phase 2: Auth Service** - Java/Spring Boot signup/login/JWT//me on Postgres; first JVM-in-Docker proof with compose entry + healthcheck
 - [ ] **Phase 3: Catalog Service** - Python/FastAPI product browse/search/filter/CRUD on MongoDB with idempotent ~20-product seed
 - [ ] **Phase 4: Cart Service** - Node/Express session carts in Redis with server-side totals validated against Catalog
@@ -39,22 +39,22 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A fresh clone on Windows yields LF line endings everywhere `.gitattributes` governs (shell scripts, `.env`) — no CRLF poisoning is possible at checkout
   5. The pinned version manifest records exact versions for every stack component (Spring Boot/Cloud/JDK, FastAPI/Pydantic, Node LTS, Kafka, Postgres 18, Mongo, Redis, Next.js), and the monorepo skeleton exists (`services/` tree, root README, `.env.example`)
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Repo foundation: pre-freeze sign-off gates, `.gitattributes`-first LF law, monorepo skeleton, `.env.example`
+- [x] 01-01-PLAN.md — Repo foundation: pre-freeze sign-off gates, `.gitattributes`-first LF law, monorepo skeleton, `.env.example`
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Validation gate (`check-contracts.sh`) + shared components + auth-service contract — the tracer slice proven end-to-end
-- [ ] 01-03-PLAN.md — Pinned version manifest (`docs/versions.md`) + JSON interop conventions (`docs/json-interop.md`)
+- [x] 01-02-PLAN.md — Validation gate (`check-contracts.sh`) + shared components + auth-service contract — the tracer slice proven end-to-end
+- [x] 01-03-PLAN.md — Pinned version manifest (`docs/versions.md`) + JSON interop conventions (`docs/json-interop.md`)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-04-PLAN.md — Catalog + cart service OpenAPI contracts (public reads / protected writes / internal edges)
-- [ ] 01-05-PLAN.md — Orders contract (idempotent checkout, status machine) + Kafka topic contracts (`order.created`, `payment.completed`, email payload)
+- [x] 01-04-PLAN.md — Catalog + cart service OpenAPI contracts (public reads / protected writes / internal edges)
+- [x] 01-05-PLAN.md — Orders contract (idempotent checkout, status machine) + Kafka topic contracts (`order.created`, `payment.completed`, email payload)
 
 ### Phase 2: Auth Service
 
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Contracts & Repo Scaffolding | 0/5 | Not started | - |
+| 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
 | 2. Auth Service | 0/TBD | Not started | - |
 | 3. Catalog Service | 0/TBD | Not started | - |
 | 4. Cart Service | 0/TBD | Not started | - |

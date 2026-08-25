@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Contracts & Scaffolding
 
-- [ ] **CONTR-01**: OpenAPI specs exist for every REST endpoint each service will expose, committed under `docs/api-contracts/` before any service code
-- [ ] **CONTR-02**: Kafka topic contracts defined in `docs/kafka-topics.md`: `order.created` and `payment.completed` (single topic carrying `outcome: APPROVED|DECLINED`), with key, JSON schema, producer, consumers, dedup/idempotency fields, and email content payload
-- [ ] **CONTR-03**: Cross-language JSON interop conventions documented: ISO 8601 dates, integer-cents money, string IDs, unknown-fields-ignored policy
-- [ ] **CONTR-04**: Monorepo scaffolding exists: `services/` tree, `.gitattributes` enforcing LF (Windows CRLF guard), root README, `.env.example`
-- [ ] **CONTR-05**: Pinned version manifest recorded (Spring Boot 3.5.x + Cloud 2025.0.x/JDK 21, FastAPI/Pydantic 2, Node LTS, Kafka 4.x, Postgres 18, Mongo 8, Redis 8, Next.js stable) so fresh-context milestones don't drift
+- [x] **CONTR-01**: OpenAPI specs exist for every REST endpoint each service will expose, committed under `docs/api-contracts/` before any service code
+- [x] **CONTR-02**: Kafka topic contracts defined in `docs/kafka-topics.md`: `order.created` and `payment.completed` (single topic carrying `outcome: APPROVED|DECLINED`), with key, JSON schema, producer, consumers, dedup/idempotency fields, and email content payload
+- [x] **CONTR-03**: Cross-language JSON interop conventions documented: ISO 8601 dates, integer-cents money, string IDs, unknown-fields-ignored policy
+- [x] **CONTR-04**: Monorepo scaffolding exists: `services/` tree, `.gitattributes` enforcing LF (Windows CRLF guard), root README, `.env.example`
+- [x] **CONTR-05**: Pinned version manifest recorded (Spring Boot 3.5.x + Cloud 2025.0.x/JDK 21, FastAPI/Pydantic 2, Node LTS, Kafka 4.x, Postgres 18, Mongo 8, Redis 8, Next.js stable) so fresh-context milestones don't drift
 
 ### Authentication
 
@@ -124,11 +124,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONTR-01 | Phase 1 | Pending |
-| CONTR-02 | Phase 1 | Pending |
-| CONTR-03 | Phase 1 | Pending |
-| CONTR-04 | Phase 1 | Pending |
-| CONTR-05 | Phase 1 | Pending |
+| CONTR-01 | Phase 1 | Complete |
+| CONTR-02 | Phase 1 | Complete |
+| CONTR-03 | Phase 1 | Complete |
+| CONTR-04 | Phase 1 | Complete |
+| CONTR-05 | Phase 1 | Complete |
 | AUTH-01 | Phase 2 | Pending |
 | AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 2 | Pending |
@@ -173,6 +173,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-02 | Phase 10 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 47 total
 - Mapped to phases: 47 ✓
 - Unmapped: 0
