@@ -108,6 +108,18 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- Host-driven Testcontainers runs: pgjdbc transmits the JVM default
+               TimeZone to the server at connect time, and postgres:18's tzdata
+               rejects legacy host zones (e.g. Asia/Calcutta -> FATAL on connect).
+               Pin test JVMs to UTC — matching the platform UTC law
+               (docs/json-interop.md Rule 1). -->
+          <argLine>-Duser.timezone=UTC</argLine>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
