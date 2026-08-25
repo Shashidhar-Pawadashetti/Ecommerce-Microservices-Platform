@@ -168,3 +168,7 @@ None - no external service configuration required. (Local `.env` was generated a
 ---
 *Phase: 02-auth-service*
 *Completed: 2026-08-25*
+
+## Self-Check: PASSED
+
+All 10 created/modified files exist on disk; all 3 commits (f1b66fd, 94be959, 1f5586a) present in git log. Plan-level verification re-confirmed: `./mvnw package` exit 0, cold-start compose healthy with Flyway-migrated schema, `scripts/check-contracts.sh` pass, all added files `i/lf`.

@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
-current_phase: 2
+current_phase: 02
 current_phase_name: Auth Service
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-08-25T16:28:35.200Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-08-25T17:07:25.427Z"
 last_activity: 2026-08-25
-last_activity_desc: Phase 1 complete, transitioned to Phase 2
-state_head: bf7365a1762c59ca730d910908a52ece02512343
+last_activity_desc: Phase 02 execution started
+state_head: 1f5586a4e79bb5bcdc0b8d16d5b423f47f591738
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 6
   percent: 10
 ---
 
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-24)
 
 **Core value:** Complete end-to-end purchase journey — signup → browse → cart → checkout → payment → order status → notification — across all services through the gateway, verified by `docker compose up` plus a scripted smoke test.
-**Current focus:** Phase 1 — Contracts & Repo Scaffolding
+**Current focus:** Phase 02 — Auth Service
 
 ## Current Position
 
-Phase: 2 (Auth Service) — READY TO EXECUTE
-Plan: Not started
+Phase: 02 (Auth Service) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-08-25 — Phase 1 complete, transitioned to Phase 2
+Last activity: 2026-08-25 — Phase 02 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 10%
 
 ## Performance Metrics
 
@@ -54,6 +54,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 02 P01 | 22min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -66,6 +71,9 @@ Recent decisions affecting current work:
 - Phase 9 reframed as cold-start reproducibility audit — each service joins Compose incrementally in its own phase
 - Order + Payment kept as one inseparable phase (single Kafka saga; kill/restart redelivery test lives there)
 - Gateway placed late deliberately: standalone ports revoked in Phase 7 as its isolation verify
+- [Phase 02]: Auth-service skeleton: wrapper via host Maven 3.9.12 (only-script type); compose uses single-word SPRING_DATASOURCE_* spellings (relaxed-binding correction vs research draft)
+- [Phase 02]: D-02 read literally in compose: POSTGRES_DB=users only; Phase-5 initdb.d obligation (init-script backfill + one-time CREATE DATABASE) recorded as compose comment
+- [Phase 02]: A4 disposition held: release-21 bytecode targeting on host JDK 23.0.1; A2 (mem_limit effective, Memory=536870912) and A5 (BusyBox wget -qO- healthcheck) empirically confirmed
 
 ### Pending Todos
 
@@ -87,6 +95,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T14:01:07.339Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-auth-service/02-CONTEXT.md
+Last session: 2026-08-25T17:06:52.569Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
