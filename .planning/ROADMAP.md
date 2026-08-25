@@ -211,7 +211,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
-| 2. Auth Service | 0/3 | Not started | - |
+| 2. Auth Service | 0/4 | Not started | - |
 | 3. Catalog Service | 0/TBD | Not started | - |
 | 4. Cart Service | 0/TBD | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
