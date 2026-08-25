@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Auth Service
-status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-08-25T18:18:19.962Z"
+status: verifying
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-08-25T18:50:17.846Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: be02220502a0d8fb514dcb2c24bd27bda74edb5a
+state_head: 9962ea15bee907afc436074deef2a95186378593
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 9
   percent: 10
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 
 Phase: 02 (Auth Service) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-25 — Phase 02 execution started
 
 Progress: [█░░░░░░░░░] 10%
@@ -61,6 +61,7 @@ Progress: [█░░░░░░░░░] 10%
 | Phase 02 P01 | 22min | 2 tasks | 10 files |
 | Phase 02 P02 | 15min | 2 tasks | 12 files |
 | Phase 02 P03 | 28min | 2 tasks | 11 files |
+| Phase 02 P04 | 19min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 02]: A4 disposition held: release-21 bytecode targeting on host JDK 23.0.1; A2 (mem_limit effective, Memory=536870912) and A5 (BusyBox wget -qO- healthcheck) empirically confirmed
 - [Phase 02]: Surefire UTC pin: pgjdbc transmits host TZ at connect; postgres:18 tzdata rejects legacy names - test JVMs pinned UTC (Rule 3, template for later slices)
 - [Phase 02]: Two-layer race-safe duplicate detection: findByEmail fast signal + users_email_uniq DataIntegrityViolation translation to identical 409 envelope (AUTH-01)
+- [Phase 02]: ERROR-dispatch law: deny-all chains must permit DispatcherType.ERROR so Boot renders true 404/500 (deny-all was masking all server error statuses as blanket 403) — Restores contracted status semantics; without it the mandated logout-absence proof (404/405) was unobservable — smoke gate now proves absence via true 404
+- [Phase 02]: Phase 02 closed with runtime absence enforcement: smoke-auth.sh step 7 fails permanently if a served /auth/logout route ever appears (T-02-absence) — AUTH-04 closed by two independent proofs: scripted runtime absence assertion + README policy statement referencing contract D-03
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T18:18:19.830Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-08-25T18:49:55.857Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None

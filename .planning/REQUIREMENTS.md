@@ -20,7 +20,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **AUTH-01**: User can sign up with email/password (unique email enforced, password stored hashed)
 - [x] **AUTH-02**: User can log in with valid credentials and receive a signed JWT
 - [x] **AUTH-03**: Authenticated user can retrieve their own profile via `/me`
-- [ ] **AUTH-04**: User can log out (client-side token discard; no server revocation in v1)
+- [x] **AUTH-04**: User can log out (client-side token discard; no server revocation in v1)
 
 ### Catalog
 
@@ -132,7 +132,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 2 | Complete |
 | AUTH-02 | Phase 2 | Complete |
 | AUTH-03 | Phase 2 | Complete |
-| AUTH-04 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Complete |
 | CAT-01 | Phase 3 | Pending |
 | CAT-02 | Phase 3 | Pending |
 | CAT-03 | Phase 3 | Pending |
