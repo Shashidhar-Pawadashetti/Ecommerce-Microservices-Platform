@@ -1,14 +1,71 @@
 # ══════════════════════════════════════════════════════════════════════
 #  Ecommerce Microservices Platform — Docker Compose
 #
-#  This file GROWS INCREMENTALLY STARTING PHASE 2 per build plan §4:
-#    • Phase 2 adds shared infrastructure (Kafka KRaft, PostgreSQL,
-#      MongoDB, Redis, Mailpit, Kafka UI)
-#    • Phases 3–8 add each application service as it is built
-#    • Phase 9 completes healthchecks, memory limits, and smoke-test
-#      wiring so `docker compose up` runs the entire system
-#
-#  Phase 1 ships this header comment ONLY — no service keys yet.
+#  This file GROWS INCREMENTALLY — each datastore/broker arrives with its
+#  first consuming service (D-01):
+#    • Phase 2 adds postgres:18 + auth-service ONLY
+#    • Phase 3 adds MongoDB        (catalog-service)
+#    • Phase 4 adds Redis          (cart-service)
+#    • Phase 5 adds Kafka KRaft    (order-service + payment-service)
+#    • Phase 6 adds Mailpit        (notification-service)
+#    • Phases 7–8 add the gateway and frontend services
+#    • Phase 9 completes healthcheck/memory/smoke wiring so
+#      `docker compose up` runs the entire system
 #
 #  Environment: values come from .env (copy from .env.example).
 # ══════════════════════════════════════════════════════════════════════
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # D-02 honored literally: ONLY the users database is created now; the
+      # orders database is added by order-service in Phase 5, NOT pre-created.
+      # PHASE 5 OBLIGATION (research Pitfall 8): /docker-entrypoint-initdb.d
+      # scripts execute solely during FIRST initialization of an empty data
+      # volume. Phase 5 must therefore ship BOTH an init-script backfill AND a
+      # one-time CREATE DATABASE so long-lived volumes also get orders.
+      POSTGRES_DB: users
+    volumes:
+      # PG18 layout: mount the ROOT path (the declared VOLUME). Mounting the
+      # old /var/lib/postgresql/data suffix silently misplaces data.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d users"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # NO host ports published — the datastore stays network-internal
+    # (GTWY-04 direction).
+
+  auth-service:
+    build: ./services/auth-service
+    # TRANSITIONAL HOST PORT — direct :8081 access exists for Phases 2–6 only;
+    # revoked in Phase 7 as part of GTWY-04 isolation verification (D-09).
+    ports:
+      - "8081:8081"
+    mem_limit: 512m
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/users
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS}
+      SERVER_PORT: "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  pgdata:
+
