@@ -386,4 +386,23 @@ class AuthFlowIntegrationTests {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
     }
+
+    @Test
+    void unmappedRouteWithValidBearerTokenAnswersTrue404() throws Exception {
+        // Status-semantics law (AUTH-04 runtime proof backing): an unmatched
+        // route behind a VALID bearer token must surface the framework's true
+        // 404 — never a blanket 403. The deny-all chain permits Boot's internal
+        // ERROR dispatch (SecurityConfig dispatcherTypeMatchers) so contracted
+        // status codes reach clients; smoke-auth.sh step 7 re-proves this live
+        // against the real container, where the /auth/logout absence probe
+        // depends on it.
+        signup("me.absent@example.com", PASSWORD).andExpect(status().isCreated());
+        String loginBody = loginAndGetTokenAndUser("me.absent@example.com");
+        String token = com.jayway.jsonpath.JsonPath.read(loginBody, "$.accessToken");
+
+        mockMvc.perform(get("/auth/nonexistent")
+                        .header(org.springframework.http.HttpHeaders.AUTHORIZATION,
+                                "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
 }

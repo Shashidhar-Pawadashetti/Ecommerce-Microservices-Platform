@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.DispatcherType;
+
 import com.ecommerce.auth.security.RestAuthenticationEntryPoint;
 
 /**
@@ -41,6 +43,13 @@ class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Boot renders unmatched routes / unhandled failures through an
+                // internal ERROR dispatch to /error; Spring Security 6 authorizes
+                // every dispatch type, so deny-all would mask those true statuses
+                // (404/500) as a blanket 403. Permit ONLY the internal ERROR
+                // dispatch — direct client requests to /error (REQUEST dispatch)
+                // stay denied below.
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 // exactly three public matchers, then deny-by-default
                 .requestMatchers("/auth/signup", "/auth/login", "/actuator/health").permitAll()
                 .requestMatchers("/auth/**").authenticated()
