@@ -27,6 +27,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.ecommerce.auth.user.UserRepository;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 
 /**
  * AUTH-01 integration proof on the real SQL dialect (D-07): ephemeral
@@ -62,6 +66,9 @@ class AuthFlowIntegrationTests {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    org.springframework.security.oauth2.jwt.JwtEncoder jwtEncoder;
 
     @BeforeEach
     void cleanUsers() {
@@ -209,5 +216,173 @@ class AuthFlowIntegrationTests {
                         "--jwt.secret=" + shortSecret))
                 .isInstanceOf(IllegalStateException.class)
                 .hasStackTraceContaining("jwt.secret too short");
+    }
+
+    // ── AUTH-03: authenticated /me + hardened stateless chain ───────────
+
+    /** Issues a fully-valid token via the app's own encoder with a chosen subject. */
+    private String encodeValidToken(String subject) {
+        java.time.Instant now = java.time.Instant.now();
+        org.springframework.security.oauth2.jwt.JwtClaimsSet claims =
+                org.springframework.security.oauth2.jwt.JwtClaimsSet.builder()
+                        .issuer("ecommerce-auth")
+                        .audience(List.of("ecommerce-api"))
+                        .issuedAt(now)
+                        .expiresAt(now.plusSeconds(3600))
+                        .subject(subject)
+                        .claim("email", "crafted@example.com")
+                        .claim("roles", List.of("customer"))
+                        .build();
+        return jwtEncoder.encode(org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(
+                org.springframework.security.oauth2.jwt.JwsHeader.with(
+                        org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256).build(),
+                claims)).getTokenValue();
+    }
+
+    private ResultActions me(String bearerHeaderValue) throws Exception {
+        var request = get("/auth/me");
+        if (bearerHeaderValue != null) {
+            request = request.header(org.springframework.http.HttpHeaders.AUTHORIZATION, bearerHeaderValue);
+        }
+        return mockMvc.perform(request);
+    }
+
+    private String loginAndGetTokenAndUser(String email) throws Exception {
+        String body = login(email, PASSWORD)
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return body;
+    }
+
+    @Test
+    void meWithFreshBearerTokenReturnsSameUserShapeAsLogin() throws Exception {
+        signup("me.happy@example.com", PASSWORD).andExpect(status().isCreated());
+        String loginBody = loginAndGetTokenAndUser("me.happy@example.com");
+        String token = com.jayway.jsonpath.JsonPath.read(loginBody, "$.accessToken");
+
+        me("Bearer " + token)
+                .andExpect(status().isOk())
+                // /me must return the SAME user object the login response carried
+                .andExpect(jsonPath("$.id").value(com.jayway.jsonpath.JsonPath.read(loginBody, "$.user.id")))
+                .andExpect(jsonPath("$.email").value("me.happy@example.com"))
+                .andExpect(jsonPath("$.roles").value(contains("customer")))
+                .andExpect(jsonPath("$.createdAt")
+                        .value(com.jayway.jsonpath.JsonPath.read(loginBody, "$.user.createdAt")));
+    }
+
+    @Test
+    void meWithoutAuthorizationHeaderReturnsExact401Envelope() throws Exception {
+        me(null)
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
+    }
+
+    @Test
+    void meWithGarbageBearerReturnsExact401Envelope() throws Exception {
+        me("Bearer this.is.garbage")
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
+    }
+
+    @Test
+    void meWithForeignSignedTokenReturns401() throws Exception {
+        signup("me.foreign@example.com", PASSWORD).andExpect(status().isCreated());
+        String userId = userRepository.findByEmail("me.foreign@example.com").orElseThrow()
+                .getId().toString();
+
+        // Same claims, different signing secret -> signature validation fails.
+        byte[] foreignBytes = "foreign-signing-secret-with-32-bytes-min"
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        org.springframework.security.oauth2.jwt.NimbusJwtEncoder foreignEncoder =
+                new org.springframework.security.oauth2.jwt.NimbusJwtEncoder(
+                        new ImmutableJWKSet<>(new JWKSet(new OctetSequenceKey.Builder(foreignBytes)
+                                .algorithm(JWSAlgorithm.HS256).build())));
+        java.time.Instant now = java.time.Instant.now();
+        String forged = foreignEncoder.encode(
+                org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(
+                        org.springframework.security.oauth2.jwt.JwsHeader.with(
+                                org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256).build(),
+                        org.springframework.security.oauth2.jwt.JwtClaimsSet.builder()
+                                .issuer("ecommerce-auth").audience(List.of("ecommerce-api"))
+                                .issuedAt(now).expiresAt(now.plusSeconds(3600))
+                                .subject(userId).claim("email", "me.foreign@example.com")
+                                .claim("roles", List.of("customer")).build()))
+                .getTokenValue();
+
+        me("Bearer " + forged)
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
+    }
+
+    @Test
+    void meWithExpiredToken61SecondsPastSkewReturns401() throws Exception {
+        signup("me.expired@example.com", PASSWORD).andExpect(status().isCreated());
+        String userId = userRepository.findByEmail("me.expired@example.com").orElseThrow()
+                .getId().toString();
+
+        // Correctly signed, correct iss/aud — ONLY expiry fails. exp sits 61s
+        // in the past: one second past the ±60s skew window (boundary proof).
+        java.time.Instant now = java.time.Instant.now();
+        String expired = jwtEncoder.encode(
+                org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(
+                        org.springframework.security.oauth2.jwt.JwsHeader.with(
+                                org.springframework.security.oauth2.jose.jws.MacAlgorithm.HS256).build(),
+                        org.springframework.security.oauth2.jwt.JwtClaimsSet.builder()
+                                .issuer("ecommerce-auth").audience(List.of("ecommerce-api"))
+                                .issuedAt(now.minusSeconds(3661)).expiresAt(now.minusSeconds(61))
+                                .subject(userId).claim("email", "me.expired@example.com")
+                                .claim("roles", List.of("customer")).build()))
+                .getTokenValue();
+
+        me("Bearer " + expired)
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
+    }
+
+    @Test
+    void meWithNonHs256OrUnsignedTokenReturns401() throws Exception {
+        signup("me.algswap@example.com", PASSWORD).andExpect(status().isCreated());
+        String userId = userRepository.findByEmail("me.algswap@example.com").orElseThrow()
+                .getId().toString();
+
+        // RS256-signed with valid claims: the MAC-restricted decoder must
+        // reject the algorithm swap before any claim is honored.
+        java.security.KeyPairGenerator keyGen = java.security.KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(2048);
+        java.security.KeyPair keyPair = keyGen.generateKeyPair();
+        java.util.Date now = java.util.Date.from(java.time.Instant.now());
+        com.nimbusds.jose.crypto.RSASSASigner rsaSigner =
+                new com.nimbusds.jose.crypto.RSASSASigner((java.security.interfaces.RSAPrivateKey) keyPair.getPrivate());
+        com.nimbusds.jwt.SignedJWT swapped = new com.nimbusds.jwt.SignedJWT(
+                new com.nimbusds.jose.JWSHeader.Builder(JWSAlgorithm.RS256).build(),
+                new com.nimbusds.jwt.JWTClaimsSet.Builder()
+                        .subject(userId).issueTime(now)
+                        .expirationTime(new java.util.Date(now.getTime() + 3_600_000L))
+                        .issuer("ecommerce-auth").audience("ecommerce-api").build());
+        swapped.sign(rsaSigner);
+
+        // Unsigned variant (alg=none): two segments, no signature at all.
+        com.nimbusds.jwt.PlainJWT plain = new com.nimbusds.jwt.PlainJWT(
+                new com.nimbusds.jwt.JWTClaimsSet.Builder()
+                        .subject(userId).issueTime(now)
+                        .expirationTime(new java.util.Date(now.getTime() + 3_600_000L)).build());
+
+        for (String forged : new String[] { swapped.serialize(), plain.serialize() }) {
+            me("Bearer " + forged)
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
+        }
+    }
+
+    @Test
+    void meWithTokenWhoseSubjectHasNoUserRowReturns401Not404() throws Exception {
+        // Fully valid signature/claims — but sub references no persisted row.
+        // Contract exposes only 200/401 for getMe; identity simply cannot be
+        // established server-side.
+        String ghostToken = encodeValidToken(UUID.randomUUID().toString());
+
+        me("Bearer " + ghostToken)
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(equalTo(UNAUTHORIZED_BODY)));
     }
 }
