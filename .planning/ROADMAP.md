@@ -69,7 +69,7 @@ Plans:
   4. Logout behaves as the documented client-side token discard (no server revocation in v1), stated in the service's docs
   5. The auth container builds via multi-stage Dockerfile, runs as its own docker-compose entry with a passing healthcheck, and passes a standalone curl smoke test (signup → login → `/me`)
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
 **Wave 1**
@@ -78,11 +78,15 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Auth flows: bcrypt signup + duplicate rejection, HS256 login with anti-enumeration, authenticated /me (AUTH-01..03)
+- [ ] 02-02-PLAN.md — Signup vertical: bcrypt signup + duplicate rejection + contracted error envelopes (AUTH-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Standalone smoke script + README logout policy + full phase verification gate (AUTH-04, SC-5)
+- [ ] 02-03-PLAN.md — Token plane: HS256 issuance + anti-enumeration login + authenticated /me (AUTH-02, AUTH-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 02-04-PLAN.md — Standalone smoke script + README logout policy + full phase verification gate (AUTH-04, SC-5)
 
 ### Phase 3: Catalog Service
 
