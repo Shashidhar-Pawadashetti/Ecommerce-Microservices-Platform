@@ -593,21 +593,25 @@ echo "smoke-auth: ALL PASS"
 | A6 | `sed`-based accessToken extraction is adequate for smoke-auth.sh | Code Examples | Brittle if response formatting changes — acceptable for a status-first script; jq install would remove fragility |
 | A7 | Creating the empty `orders` database in Phase 2 (Option a, Pitfall 8) is acceptable despite D-02's "added by order-service in Phase 5" phrasing | Open Questions Q1 | Deviation from locked-decision wording — needs user confirmation either way |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **When does the `orders` database physically exist?** *(Pitfall 8)*
    - What we know: PG init scripts run only on empty volumes; D-02 wants no container recreation; ORCH-04 demands clean cold starts at Phase 9.
    - What's unclear: create `orders` eagerly in Phase 2 (robust, slight wording deviation) vs lazily in Phase 5 (literal compliance, adds a one-time manual/exec task + init-script backfill for cold starts).
    - Recommendation: eager (Option a) — commit `scripts/pg-init/01-create-databases.sh` iterating `POSTGRES_MULTIPLE_DATABASES` (set to `users,orders`) now; flag to user in plan as a checkpoint if strictness preferred.
+   - **Resolution:** LOCKED DECISION WINS — D-02 read literally; `orders` is NOT pre-created in Phase 2 and no pg-init script ships now. Plan 02-01 Task 2 records the Phase-5 obligation in a compose comment (init-script backfill + one-time CREATE DATABASE for long-lived volumes).
 
 2. **Host JDK: literal 21 vs release-flag on 23?** *(A4)*
    - What we know: host has Oracle JDK 23.0.1; D-08 names "local JDK 21 prerequisite".
    - Recommendation: proceed with `maven.compiler.release=21` on JDK 23 (bytecode + API targeting identical for this codebase); offer Temurin 21 install as alternative. Needs user nod at plan review since D-08 is a locked decision.
+   - **Resolution:** conservative unattended disposition — proceed with release-21 targeting on host JDK 23 (bytecode + container runtime are 21), recorded as flagged assumption A4 with a strengthened executor precondition in 02-01-PLAN.md Task 1; Temurin 21 install documented as the optional strictness path. Explicit user sign-off deliberately NOT fabricated; deviation surfaces verbatim for human review at execution.
 
 3. **PasswordEncoder representation: `{bcrypt}`-prefixed Delegating vs raw bcrypt?**
    - Both satisfy "hashed, not recoverable"; discretion area. Recommendation: plain `BCryptPasswordEncoder(12)` bean — column content stays tool-portable (`$2a$…` recognizable everywhere) and matches the contract's "bcrypt-hashed" description without framework framing.
+   - **Resolution:** plain `BCryptPasswordEncoder(12)` bean as recommended — declared in SecurityConfig by 02-02-PLAN.md Task 1.
 
 4. **springdoc in v1?** Recommendation: defer entirely (EXPR-05); check-contracts Stage 5 already asserts operationIds statically. Revisit if Verify wants live conformance — then budget for semantic normalization (Pitfall 7).
+   - **Resolution:** deferred entirely per EXPR-05 — the pom dependency list authored by 02-01-PLAN.md Task 1 deliberately omits springdoc; conformance is enforced statically by `scripts/check-contracts.sh` Stage 5, run at the phase gate in 02-04-PLAN.md Task 2.
 
 ## Environment Availability
 
