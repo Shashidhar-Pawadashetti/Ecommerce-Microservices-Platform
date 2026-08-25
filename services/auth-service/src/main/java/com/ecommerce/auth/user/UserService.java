@@ -139,4 +139,14 @@ public class UserService {
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }
+
+    /**
+     * Server-side profile resolution for GET /auth/me: identity derives
+     * EXCLUSIVELY from the verified sub claim (never a request body). Empty
+     * when the subject row is gone — the web layer renders that as the shared
+     * 401 envelope, since the contract exposes only 200/401 for this operation.
+     */
+    public Optional<User> profileOf(UUID id) {
+        return userRepository.findById(id);
+    }
 }

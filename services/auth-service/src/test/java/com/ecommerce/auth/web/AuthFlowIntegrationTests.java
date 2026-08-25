@@ -259,15 +259,16 @@ class AuthFlowIntegrationTests {
         signup("me.happy@example.com", PASSWORD).andExpect(status().isCreated());
         String loginBody = loginAndGetTokenAndUser("me.happy@example.com");
         String token = com.jayway.jsonpath.JsonPath.read(loginBody, "$.accessToken");
+        String userId = com.jayway.jsonpath.JsonPath.read(loginBody, "$.user.id");
+        Object createdAt = com.jayway.jsonpath.JsonPath.read(loginBody, "$.user.createdAt");
 
         me("Bearer " + token)
                 .andExpect(status().isOk())
                 // /me must return the SAME user object the login response carried
-                .andExpect(jsonPath("$.id").value(com.jayway.jsonpath.JsonPath.read(loginBody, "$.user.id")))
+                .andExpect(jsonPath("$.id").value(equalTo(userId)))
                 .andExpect(jsonPath("$.email").value("me.happy@example.com"))
                 .andExpect(jsonPath("$.roles").value(contains("customer")))
-                .andExpect(jsonPath("$.createdAt")
-                        .value(com.jayway.jsonpath.JsonPath.read(loginBody, "$.user.createdAt")));
+                .andExpect(jsonPath("$.createdAt").value(equalTo(createdAt)));
     }
 
     @Test

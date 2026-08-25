@@ -1,7 +1,10 @@
 package com.ecommerce.auth.web;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,11 +29,13 @@ import jakarta.validation.Valid;
  *       409 Conflict(DUPLICATE_EMAIL)</li>
  *   <li>{@code POST /auth/login} [operationId: login] → 200 AccessTokenPair |
  *       401 Unauthorized</li>
+ *   <li>{@code GET /auth/me} [operationId: getMe] → 200 User |
+ *       401 Unauthorized</li>
  * </ul>
  *
- * <p>GET /auth/me lands in this plan's Task 2. There is intentionally NO
- * logout mapping — the frozen contract (D-03) makes logout client-side token
- * discard; no endpoint will be added without an explicit contract change.</p>
+ * <p>There is intentionally NO logout mapping — the frozen contract (D-03)
+ * makes logout client-side token discard; no endpoint will be added without
+ * an explicit contract change.</p>
  */
 @RestController
 class AuthController {
@@ -55,6 +60,20 @@ class AuthController {
                 .<ResponseEntity<?>>map(session -> ResponseEntity.ok(
                         new AccessTokenPairResponse(session.accessToken(),
                                 UserResponse.from(session.user()))))
+                .orElseGet(AuthController::unauthorized);
+    }
+
+    /**
+     * Identity derives EXCLUSIVELY from the verified token subject: Spring's
+     * JWT auth maps sub to Authentication#getName(), resolved server-side —
+     * request bodies never carry identity. A missing subject row is rendered
+     * as the shared 401 envelope, never a 404 (contract: 200/401 only).
+     */
+    @GetMapping("/auth/me")
+    ResponseEntity<?> me(Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        return userService.profileOf(userId)
+                .<ResponseEntity<?>>map(user -> ResponseEntity.ok(UserResponse.from(user)))
                 .orElseGet(AuthController::unauthorized);
     }
 
