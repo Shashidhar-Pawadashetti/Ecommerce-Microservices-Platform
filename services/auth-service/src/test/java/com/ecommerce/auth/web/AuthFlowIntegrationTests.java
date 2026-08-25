@@ -190,4 +190,24 @@ class AuthFlowIntegrationTests {
         assertThat(wrongPasswordBody).isEqualTo(UNAUTHORIZED_BODY);
         assertThat(unknownEmailBody).isEqualTo(wrongPasswordBody);
     }
+
+    @Test
+    void weakSecretRefusesBootViaStartupAssertion() {
+        // 13 decoded bytes < 32-byte law: JwtSecretAssertion must abort boot.
+        String shortSecret = java.util.Base64.getEncoder()
+                .encodeToString("under-32-bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        assertThatThrownBy(() -> new org.springframework.boot.builder.SpringApplicationBuilder(
+                        com.ecommerce.auth.AuthServiceApplication.class)
+                .run(
+                        // command-line args outrank application.yml (its
+                        // localhost datasource default would otherwise win)
+                        "--spring.datasource.url=" + postgres.getJdbcUrl(),
+                        "--spring.datasource.username=" + postgres.getUsername(),
+                        "--spring.datasource.password=" + postgres.getPassword(),
+                        "--server.port=0",
+                        "--jwt.secret=" + shortSecret))
+                .isInstanceOf(IllegalStateException.class)
+                .hasStackTraceContaining("jwt.secret too short");
+    }
 }

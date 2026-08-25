@@ -18,3 +18,14 @@ management:
     web:
       exposure:
         include: health
+
+jwt:
+  # Names are contractual (.env.example): JWT_SECRET/JWT_ISSUER/JWT_AUDIENCE/
+  # JWT_TTL_SECONDS via relaxed binding; compose injects the real values from
+  # .env. The base64 default decodes to a 37-byte DEV/TEST-ONLY placeholder so
+  # host-driven runs boot without env setup — compose always overrides it and
+  # JwtSecretAssertion enforces >=32 decoded bytes either way.
+  secret: ${JWT_SECRET:bG9jYWwtZGV2LW9ubHktc2lnbmluZy1zZWNyZXQtMzJieXRlcw==}
+  issuer: ${JWT_ISSUER:ecommerce-auth}
+  audience: ${JWT_AUDIENCE:ecommerce-api}
+  ttl-seconds: ${JWT_TTL_SECONDS:3600}

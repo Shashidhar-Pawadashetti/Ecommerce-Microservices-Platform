@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,6 +21,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 
 /**
  * Unit slice for the signup domain core (D-07 layering): plain JUnit + Mockito
@@ -35,6 +43,7 @@ class UserServiceTests {
     private UserRepository userRepository;
 
     private PasswordEncoder passwordEncoder;
+    private JwtEncoder jwtEncoder;
     private UserService userService;
 
     @BeforeEach
@@ -42,7 +51,13 @@ class UserServiceTests {
         // Real BCryptPasswordEncoder(12) — same cost factor as the SecurityConfig
         // bean — so the "$2a$" assertion exercises genuine bcrypt output.
         passwordEncoder = new BCryptPasswordEncoder(12);
-        userService = new UserService(userRepository, passwordEncoder);
+        // Real HS256 encoder over a local test secret so issueToken() is callable.
+        byte[] secretBytes = "unit-slice-signing-secret-32-bytes!!".getBytes(StandardCharsets.UTF_8);
+        OctetSequenceKey jwk = new OctetSequenceKey.Builder(secretBytes)
+                .algorithm(JWSAlgorithm.HS256).build();
+        jwtEncoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
+        userService = new UserService(userRepository, passwordEncoder, jwtEncoder,
+                "ecommerce-auth", "ecommerce-api", 3600);
     }
 
     /** Emulates @UuidGenerator persist-time generation on the mocked save(). */

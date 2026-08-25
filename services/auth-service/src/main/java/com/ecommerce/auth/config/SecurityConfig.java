@@ -37,7 +37,7 @@ class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/auth/signup").permitAll()
+                .requestMatchers("/auth/signup", "/auth/login").permitAll()
                 .anyRequest().denyAll());
         return http.build();
     }
