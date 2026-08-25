@@ -1,0 +1,20 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    # Compose injects SPRING_DATASOURCE_URL (jdbc:postgresql://postgres:5432/users);
+    # the localhost default serves host-driven runs (e.g. Testcontainers-free local boot).
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/users}
+    username: ${POSTGRES_USER:ecommerce}
+    password: ${POSTGRES_PASSWORD:}
+  jpa:
+    # Flyway owns schema evolution; validate catches entity/migration drift early.
+    hibernate:
+      ddl-auto: validate
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
