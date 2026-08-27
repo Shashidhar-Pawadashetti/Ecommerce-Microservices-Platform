@@ -143,8 +143,149 @@ services:
       retries: 5
       start_period: 30s
 
+  # ── Phase 5: Apache Kafka 4.2.1 (KRaft, NO ZooKeeper) ───────────────────
+  kafka:
+    image: apache/kafka:4.2.1
+    # TRANSITIONAL HOST PORT — direct :9092 access for Phases 5–6 only;
+    # the broker stays network-internal after Phase 7 hardening.
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Provision order.created + payment.completed (3 partitions, RF=1) — contract
+  # mandates fixed partitions/RF and NO auto-create (docs/kafka-topics.md).
+  kafka-init:
+    image: apache/kafka:4.2.1
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      sh -c "kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic order.created --partitions 3 --replication-factor 1 && kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic payment.completed --partitions 3 --replication-factor 1"
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 1
+
+  # Create the orders database once (idempotent; safe on long-lived volumes).
+  orders-db-init:
+    image: postgres:18
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      sh -c "psql -U $$POSTGRES_USER -d postgres -tc \"SELECT 1 FROM pg_database WHERE datname='orders'\" | grep -q 1 || psql -U $$POSTGRES_USER -d postgres -c \"CREATE DATABASE orders\""
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 1
+
+  # Read-only topic/consumer-group observability for the ORDR-08 kill test.
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
+
+  # ── Phase 5: Order Service (Spring Boot 3.5.16) ─────────────────────────
+  order-service:
+    build: ./services/order-service
+    # TRANSITIONAL HOST PORT — direct :8082 access for Phases 5–6 only;
+    # revoked in Phase 7 (deviation A5, recorded in DOCS-02).
+    ports:
+      - "8082:8082"
+    mem_limit: 512m
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orders
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS}
+      SERVER_PORT: "8082"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      CART_SERVICE_URL: http://cart-service:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      orders-db-init:
+        condition: service_completed_successfully
+      kafka-init:
+        condition: service_completed_successfully
+      cart-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ── Phase 5: Payment Service (FastAPI 0.141.1, Kafka saga participant) ──
+  payment-service:
+    build: ./services/payment-service
+    # TRANSITIONAL HOST PORT — direct :8083 access for Phases 5–6 only;
+    # revoked in Phase 7 (deviation A5, recorded in DOCS-02).
+    ports:
+      - "8083:8083"
+    mem_limit: 512m
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_URL: redis://redis:6379/0
+      PAYMENT_MODE: ${PAYMENT_MODE:-always_success}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q '[u]vicorn'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 volumes:
   pgdata:
   mongo-data:
   redis-data:
+  kafka-data:
+
 
