@@ -74,22 +74,35 @@ def _doc_to_batch(doc: dict) -> dict:
 async def list_products(
     category: Optional[str] = None,
     q: Optional[str] = None,
-    sort_field: str = "name",
-    direction: int = ASCENDING,
+    sort_spec: Optional[list[tuple[str, int]]] = None,
     limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[dict], int]:
-    """Return one page of products plus the total size of the filtered set."""
+    """Return one page of products plus the total size of the filtered set.
+
+    ``sort_spec`` is an explicit list of ``(field, direction)`` tuples; the caller
+    is expected to include a deterministic tie-break (``("_id", 1)``) as the final
+    element so pagination is repeatable. ``category`` is an EXACT-match filter and
+    ``q`` adds a ``$text`` clause only when non-empty — raw request JSON is never
+    interpolated into the query (T-03-03 NoSQL injection guard).
+    """
     assert _products is not None, "connect() must run before list_products()"
     query: dict[str, Any] = {}
+    # Exact category match — no substring/operator logic (injection guard).
     if category:
         query["category"] = category
+    # $text search only when q is non-empty; empty/absent q omits the clause.
     if q:
         query["$text"] = {"$search": q}
 
     total = await _products.count_documents(query)
-    sort_key = "priceCents" if sort_field == "price" else "name"
-    cursor = _products.find(query).sort(sort_key, direction).skip(offset).limit(limit)
+    # Defense-in-depth: guarantee a deterministic _id tie-break so listings are
+    # stable even if a caller forgets to append one.
+    if not sort_spec:
+        sort_spec = [("name", ASCENDING)]
+    elif sort_spec[-1][0] != "_id":
+        sort_spec = list(sort_spec) + [("_id", ASCENDING)]
+    cursor = _products.find(query).sort(sort_spec).skip(offset).limit(limit)
     items = [_doc_to_product(d) async for d in cursor]
     return items, total
 

@@ -45,12 +45,16 @@ async def list_products(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ):
-    direction = 1 if order == "asc" else -1
+    # Primary sort resolves to a concrete field; direction from order.
+    sort_key = "priceCents" if sort == "price" else "name"
+    direction = -1 if order == "desc" else 1
+    # Deterministic tie-break on _id so equal-primary-key rows are ordered
+    # repeatably across pages (CAT-04 adjacency contract).
+    sort_spec = [(sort_key, direction), ("_id", 1)]
     items, total = await db.list_products(
         category=category,
         q=q,
-        sort_field=sort,
-        direction=direction,
+        sort_spec=sort_spec,
         limit=limit,
         offset=offset,
     )
