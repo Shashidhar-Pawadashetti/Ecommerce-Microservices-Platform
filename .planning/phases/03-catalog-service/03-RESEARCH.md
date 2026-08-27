@@ -524,24 +524,24 @@ def auth_token():
 
 **If this table is empty:** All claims in this research were verified or cited — no user confirmation needed. (A1–A3 are design recommendations surfaced for planner confirmation, not factual uncertainties.)
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **JWT holder scope**
+1. **JWT holder scope** — *RESOLVED:* Keep self-verify (defense-in-depth + unchanged testability) and record the 3-holder reality in `docs/runbook.md` (DOCS-02, Phase 10). Catalog remains a 3rd `JWT_SECRET` holder in v1; this is the committed decision, not a temporary one.
    - What we know: Contract requires catalog to return 401 on invalid tokens; gateway is Phase 7.
    - What's unclear: Whether to keep self-verify after Phase 7 or trust the gateway (reverting to 2 holders).
    - Recommendation: Keep self-verify (defense-in-depth + unchanged testability); document the 3-holder reality in DOCS-02.
 
-2. **`imageUrl` absoluteness for the frontend**
+2. **`imageUrl` absoluteness for the frontend** — *RESOLVED:* Store root-relative (`/catalog/static/...`); Phase 8 storefront prefixes the gateway base URL when rendering `<img>`. No change to seed `imageUrl` shape.
    - What we know: Root-relative `/catalog/static/...` flows through the gateway.
    - What's unclear: How Phase 8 storefront resolves the URL (prefix gateway origin vs. proxy route).
    - Recommendation: Store root-relative; Phase 8 prefixes the gateway base URL when rendering `<img>`.
 
-3. **Transitional host port**
+3. **Transitional host port** — *RESOLVED:* Publish `8000:8000` in Phase 3 for direct Swagger/admin use; revoke in Phase 7 as part of GTWY-04 isolation (mirrors auth-service D-09 pattern).
    - What we know: auth-service publishes `8081:8081` in Phases 2–6, revoked in Phase 7 (D-09).
    - What's unclear: Whether catalog should publish `8000:8000` in Phase 3 for direct Swagger/admin use.
    - Recommendation: Yes — mirror auth-service; revoke in Phase 7 as part of GTWY-04 isolation.
 
-4. **Dependency manager (uv vs pip)**
+4. **Dependency manager (uv vs pip)** — *RESOLVED:* Standardize on `uv` for catalog-service (lockfile reproducibility) and use it identically for payment-service. A `uv.lock` is committed per service; `requirements.txt` export optional. No `pip install -e .` fallback.
    - What we know: STACK.md prefers `uv`; build plan mentions poetry/pip.
    - What's unclear: Which to standardize.
    - Recommendation: Pick `uv` (lockfile reproducibility) and use identically for payment-service; a `requirements.txt` export is fine if simpler.
