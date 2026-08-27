@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 current_phase: 03
 current_phase_name: Catalog Service
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-08-27T12:20:16.010Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-08-27T12:32:16.269Z"
 last_activity: 2026-08-27
 last_activity_desc: Phase 03 execution started
-state_head: c6055d4cb6ee2d658651dd64528276213ee7749b
+state_head: 4972e16c26eb81b37e94a0f3f47b183bdbb4f43a
 progress:
   total_phases: 10
   completed_phases: 2
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 03 (Catalog Service) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-08-27 — Phase 03 execution started
 
@@ -64,6 +64,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02 P04 | 19min | 2 tasks | 4 files |
 | Phase 03 P01 | 50 min | 2 tasks | 20 files |
 | Phase 03 P02 | 18 min | 2 tasks | 4 files |
+| Phase 03 P03 | 25min | 2 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Catalog is the third JWT_SECRET holder in v1 (with auth-service + gateway); self-verify is defense-in-depth; deviation recorded for DOCS-02 runbook. — json-interop.md names exactly two holders; catalog self-verify is a v1 deviation to document.
 - [Phase 03]: Catalog listProducts uses explicit sort_spec with deterministic _id tie-break for repeatable pagination (CAT-04).
 - [Phase 03]: Category filter is exact-match only; q adds $text clause only when non-empty (T-03-03 NoSQL-injection guard).
+- [Phase 03]: 03-03: StaticFiles serves the whole static/ tree (mount root moved up one level) so the planned contract URL /catalog/static/products/{id}.svg resolves to static/products/{id}.svg; seed uses products_collection() public accessor from Plan 01 (no new Mongo connection logic).
 
 ### Pending Todos
 
@@ -111,6 +113,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-27T12:20:15.793Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-08-27T12:32:16.048Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
