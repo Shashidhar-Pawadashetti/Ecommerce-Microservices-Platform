@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Contracts & Repo Scaffolding** - OpenAPI specs, Kafka topic contracts, JSON interop rules, pinned versions, monorepo skeleton — before any service code (completed 2026-08-25)
 - [ ] **Phase 2: Auth Service** - Java/Spring Boot signup/login/JWT//me on Postgres; first JVM-in-Docker proof with compose entry + healthcheck
-- [ ] **Phase 3: Catalog Service** - Python/FastAPI product browse/search/filter/CRUD on MongoDB with idempotent ~20-product seed
+- [x] **Phase 3: Catalog Service** - Python/FastAPI product browse/search/filter/CRUD on MongoDB with idempotent ~20-product seed (completed 2026-08-27)
 - [ ] **Phase 4: Cart Service** - Node/Express session carts in Redis with server-side totals validated against Catalog
 - [ ] **Phase 5: Order + Payment Services** - Inseparable Kafka saga pair: checkout snapshot, mock payment, status state machine, redelivery proof
 - [ ] **Phase 6: Notification Service** - Node/kafkajs worker consuming both topics into Mailpit confirmation emails
@@ -101,7 +101,7 @@ Plans:
   4. Running the seed script populates ~20 realistic products with bundled placeholder images; re-running it changes nothing (idempotent)
   5. Product create/update/delete works via authenticated API calls (Swagger-driven; no admin UI) and is refused without authentication
 
-**Plans:** 4/4 plans executed
+**Plans:** 4/4 plans complete
 
 **Wave 1**
 
@@ -225,7 +225,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
 | 2. Auth Service | 4/4 | In Progress|  |
-| 3. Catalog Service | 4/4 | In Progress|  |
+| 3. Catalog Service | 4/4 | Complete   | 2026-08-27 |
 | 4. Cart Service | 0/TBD | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
 | 6. Notification Service | 0/TBD | Not started | - |
