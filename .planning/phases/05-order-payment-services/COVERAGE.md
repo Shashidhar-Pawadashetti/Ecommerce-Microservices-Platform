@@ -27,3 +27,27 @@
 ## Conclusion
 
 Full external-surface coverage. Every consumer is idempotent by construction (terminal-state guard + Redis `SETNX` + unique `idempotency_keys.key`), satisfying the at-least-once delivery contract.
+
+## Verification status (Plan 05-01)
+
+Both services are verified by automated suites (no Docker Compose required for the unit/integration tier):
+
+- **order-service** — `OrderSagaIntegrationTests` (EmbeddedKafka + Testcontainers PostgreSQL):
+  - publishes `order.created` to the broker on checkout;
+  - `payment.completed` (APPROVED) drives the order to `PAID`; (DECLINED) to `PAYMENT_FAILED`;
+  - `Idempotency-Key` replay returns the **same** order (HTTP 200);
+  - a non-owner `GET /orders/{id}` returns **404** (no ownership leak). ✅ green
+- **payment-service** — `tests/test_saga.py` (real RedisContainer + fake producer):
+  - `always_success` → `APPROVED` with `reason` omitted (interop Rule 4);
+  - `always_fail` → `DECLINED` with `reason` present;
+  - redelivered `order.created` → `SETNX` dedup → exactly **one** `payment.completed` produced. ✅ green
+- **End-to-end smoke** — `scripts/phase5-tracer-smoke.sh` (full `docker compose` stack):
+  signup → cart → checkout → `PAID`.
+- **Crash recovery** — `scripts/phase5-kill-test.sh` (ORDR-08): kill `payment-service`
+  before it consumes `order.created`, restart, assert the order still reaches `PAID`.
+
+### Deviations applied during execution (see `docs/runbook.md` DOCS-02)
+- **A2** — `orders.items_json` column added (the plan's V1 SQL omitted it; required so
+  `GET /orders/{id}` returns the frozen line-item snapshot without a join table).
+- **A3** — order-service verifies JWTs only; payment-service is Kafka-only (neither issues tokens).
+- **A5** — `:8082`/`:8083` exposed transiently; revoked in Phase 7.
