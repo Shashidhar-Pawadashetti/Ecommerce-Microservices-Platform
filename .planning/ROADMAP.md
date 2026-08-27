@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Auth Service** - Java/Spring Boot signup/login/JWT//me on Postgres; first JVM-in-Docker proof with compose entry + healthcheck
 - [x] **Phase 3: Catalog Service** - Python/FastAPI product browse/search/filter/CRUD on MongoDB with idempotent ~20-product seed (completed 2026-08-27)
 - [x] **Phase 4: Cart Service** - Node/Express session carts in Redis with server-side totals validated against Catalog (completed 2026-08-27)
-- [ ] **Phase 5: Order + Payment Services** - Inseparable Kafka saga pair: checkout snapshot, mock payment, status state machine, redelivery proof
+- [x] **Phase 5: Order + Payment Services** - Inseparable Kafka saga pair: checkout snapshot, mock payment, status state machine, redelivery proof (completed 2026-08-27)
 - [ ] **Phase 6: Notification Service** - Node/kafkajs worker consuming both topics into Mailpit confirmation emails
 - [ ] **Phase 7: API Gateway** - Spring Cloud Gateway single ingress: routing, JWT enforcement, port revocation, rate limiting
 - [ ] **Phase 8: Frontend** - Next.js storefront: browse, cart, checkout with polling confirmation, order history through same-origin proxy
@@ -153,7 +153,7 @@ Plans:
 **Plans**: 1 plan (single `05-PLAN.md`, wave-ordered: tracer + 3 expansion waves)
 
 Plans:
-- [ ] 05-PLAN.md — Order+Payment Kafka saga: tracer end-to-end on real Kafka (ORDR-01/02/03/04/07), HTTP-replay idempotency + Redis SETNX (ORDR-03/04/05), cart-clear + order history/IDOR 404 (ORDR-04/06/07), kill/restart redelivery proof (ORDR-08)
+- [x] 05-PLAN.md — Order+Payment Kafka saga: tracer end-to-end on real Kafka (ORDR-01/02/03/04/07), HTTP-replay idempotency + Redis SETNX (ORDR-03/04/05), cart-clear + order history/IDOR 404 (ORDR-04/06/07), kill/restart redelivery proof (ORDR-08)
 
 ### Phase 6: Notification Service
 
@@ -234,10 +234,10 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
-| 2. Auth Service | 4/4 | In Progress|  |
+| 2. Auth Service | 4/4 | Complete   | 2026-08-27 |
 | 3. Catalog Service | 4/4 | Complete   | 2026-08-27 |
-| 4. Cart Service | 4/4 | In Progress|  |
-| 5. Order + Payment Services | 0/TBD | Not started | - |
+| 4. Cart Service | 4/4 | Complete   | 2026-08-27 |
+| 5. Order + Payment Services | 1/1 | Complete   | 2026-08-27 |
 | 6. Notification Service | 0/TBD | Not started | - |
 | 7. API Gateway | 0/TBD | Not started | - |
 | 8. Frontend | 0/TBD | Not started | - |
