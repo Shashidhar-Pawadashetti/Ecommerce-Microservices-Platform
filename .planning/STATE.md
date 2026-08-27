@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 03
 current_phase_name: Catalog Service
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-08-27T12:10:46.515Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-08-27T12:20:16.010Z"
 last_activity: 2026-08-27
 last_activity_desc: Phase 03 execution started
-state_head: 02af5ff643bb595241ad8338325bcc2e015f647d
+state_head: c6055d4cb6ee2d658651dd64528276213ee7749b
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 20
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 03 (Catalog Service) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-27 — Phase 03 execution started
 
@@ -63,6 +63,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02 P03 | 28min | 2 tasks | 11 files |
 | Phase 02 P04 | 19min | 2 tasks | 4 files |
 | Phase 03 P01 | 50 min | 2 tasks | 20 files |
+| Phase 03 P02 | 18 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 03]: Unified error envelope emitted as compact json.dumps(separators=(',',':')) so byte-exact bodies (NOT_FOUND/UNAUTHORIZED) are reproducible and the /health grep matches '"status":"ok"'. — Exact-envelope assertions required by 03-PATTERNS Pattern 1/Shared Pattern 4.
 - [Phase 03]: require_auth dependency defined now (security.py) so Plan 04 admin routes import it without refactor; not yet wired to public routes per plan. — Satisfies T-03-01 default-deny mutating routes without later refactor (plan must-have).
 - [Phase 03]: Catalog is the third JWT_SECRET holder in v1 (with auth-service + gateway); self-verify is defense-in-depth; deviation recorded for DOCS-02 runbook. — json-interop.md names exactly two holders; catalog self-verify is a v1 deviation to document.
+- [Phase 03]: Catalog listProducts uses explicit sort_spec with deterministic _id tie-break for repeatable pagination (CAT-04).
+- [Phase 03]: Category filter is exact-match only; q adds $text clause only when non-empty (T-03-03 NoSQL-injection guard).
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-27T12:09:51.631Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-08-27T12:20:15.793Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

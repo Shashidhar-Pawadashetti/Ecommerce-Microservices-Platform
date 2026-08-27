@@ -101,7 +101,7 @@ Plans:
   4. Running the seed script populates ~20 realistic products with bundled placeholder images; re-running it changes nothing (idempotent)
   5. Product create/update/delete works via authenticated API calls (Swagger-driven; no admin UI) and is refused without authentication
 
-**Plans:** 1/4 plans executed (planned)
+**Plans:** 2/4 plans executed
 
 **Wave 1**
 
@@ -109,7 +109,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Category filter + text search + sort/pagination with edge-handling + tests (CAT-03, CAT-04)
+- [x] 03-02-PLAN.md — Category filter + text search + sort/pagination with edge-handling + tests (CAT-03, CAT-04)
 - [ ] 03-03-PLAN.md — Idempotent ~20-product seed + committed placeholder SVGs + static serving (CAT-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -225,7 +225,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
 | 2. Auth Service | 4/4 | In Progress|  |
-| 3. Catalog Service | 1/4 | In Progress|  |
+| 3. Catalog Service | 2/4 | In Progress|  |
 | 4. Cart Service | 0/TBD | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
 | 6. Notification Service | 0/TBD | Not started | - |
