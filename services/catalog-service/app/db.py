@@ -131,3 +131,26 @@ async def batch_get(ids: list[str]) -> list[dict]:
         return []
     cursor = _products.find({"_id": {"$in": ids}})
     return [_doc_to_batch(d) async for d in cursor]
+
+
+async def create_product(product: dict) -> str:
+    """Insert a new product document; return its generated string id."""
+    assert _products is not None, "connect() must run before create_product()"
+    result = await _products.insert_one(product)
+    return str(result.inserted_id)
+
+
+async def update_product(product_id: str, changes: dict) -> Optional[dict]:
+    """Apply ``$set`` to a product; return the updated wire dict or None if unknown."""
+    assert _products is not None, "connect() must run before update_product()"
+    result = await _products.update_one({"_id": product_id}, {"$set": changes})
+    if result.matched_count == 0:
+        return None
+    return await get_product(product_id)
+
+
+async def delete_product(product_id: str) -> bool:
+    """Delete a product by id; return True if a document was removed."""
+    assert _products is not None, "connect() must run before delete_product()"
+    result = await _products.delete_one({"_id": product_id})
+    return result.deleted_count == 1

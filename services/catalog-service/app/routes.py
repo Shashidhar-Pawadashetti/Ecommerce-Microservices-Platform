@@ -1,17 +1,25 @@
 """Catalog Service HTTP routes.
 
-Routes implemented in this tracer slice (public read path):
+Routes implemented in this slice:
   GET  /catalog/products            listProducts       (public)
   POST /catalog/products/batch      batchGetProducts    (network-internal)
   GET  /catalog/products/{id}       getProduct          (public)
+  POST /catalog/products            createProduct       (admin, JWT)  -- Plan 04 / CAT-06
+  PUT  /catalog/products/{id}       updateProduct       (admin, JWT)  -- Plan 04 / CAT-06
+  DELETE /catalog/products/{id}     deleteProduct       (admin, JWT)  -- Plan 04 / CAT-06
   GET  /health                      health             (network-internal)
 
 Every route carries an explicit operation_id matching the frozen OpenAPI contract
-so scripts/check-contracts.sh operationId coverage and Spectral lint pass.
+so scripts/check-contracts.sh operationId coverage and Spectral lint pass. Mutating
+routes (create/update/delete) declare ``bearerAuth`` and attach the ``require_auth``
+dependency (default-deny; T-03-01 broken-access-control mitigation).
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Query
+from datetime import datetime, timezone
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 from . import db
@@ -20,7 +28,9 @@ from .models import (
     BatchPricingRequest,
     Product,
     ProductList,
+    ProductWrite,
 )
+from .security import require_auth
 
 router = APIRouter()
 
@@ -85,6 +95,55 @@ async def get_product(product_id: str):
 
         raise HTTPException(status_code=404, detail=NOT_FOUND_BODY)
     return doc
+
+
+@router.post(
+    "/catalog/products",
+    operation_id="createProduct",
+    response_model=Product,
+    response_model_exclude_none=True,
+    dependencies=[Depends(require_auth)],
+    openapi_extra={"security": [{"bearerAuth": []}]},
+    status_code=201,
+)
+async def create_product(body: ProductWrite):
+    # Mass-assignment guard: id/createdAt are never taken from the body (ProductWrite
+    # excludes them by construction); the server generates both (T-03-05).
+    doc = body.model_dump(exclude_none=True)
+    doc["_id"] = f"prod-{uuid4().hex[:12]}"  # string id per interop Rule 3
+    doc["createdAt"] = datetime.now(timezone.utc)
+    new_id = await db.create_product(doc)
+    return await db.get_product(new_id)
+
+
+@router.put(
+    "/catalog/products/{product_id}",
+    operation_id="updateProduct",
+    response_model=Product,
+    response_model_exclude_none=True,
+    dependencies=[Depends(require_auth)],
+    openapi_extra={"security": [{"bearerAuth": []}]},
+)
+async def update_product(product_id: str, body: ProductWrite):
+    changes = body.model_dump(exclude_none=True)
+    updated = await db.update_product(product_id, changes)
+    if updated is None:
+        raise HTTPException(status_code=404, detail=NOT_FOUND_BODY)
+    return updated
+
+
+@router.delete(
+    "/catalog/products/{product_id}",
+    operation_id="deleteProduct",
+    dependencies=[Depends(require_auth)],
+    openapi_extra={"security": [{"bearerAuth": []}]},
+    status_code=204,
+)
+async def delete_product(product_id: str):
+    deleted = await db.delete_product(product_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=NOT_FOUND_BODY)
+    return Response(status_code=204)
 
 
 @router.get("/health", operation_id="health")
