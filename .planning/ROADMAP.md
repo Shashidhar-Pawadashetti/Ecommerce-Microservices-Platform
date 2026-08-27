@@ -101,11 +101,11 @@ Plans:
   4. Running the seed script populates ~20 realistic products with bundled placeholder images; re-running it changes nothing (idempotent)
   5. Product create/update/delete works via authenticated API calls (Swagger-driven; no admin UI) and is refused without authentication
 
-**Plans:** 4 plans (planned)
+**Plans:** 1/4 plans executed (planned)
 
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Tracer: FastAPI + PyMongo + MongoDB + Compose + contract envelope (public read path: list/detail/batch/health) + Wave-0 tests (CAT-01, CAT-02)
+- [x] 03-01-PLAN.md — Tracer: FastAPI + PyMongo + MongoDB + Compose + contract envelope (public read path: list/detail/batch/health) + Wave-0 tests (CAT-01, CAT-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -225,7 +225,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
 | 2. Auth Service | 4/4 | In Progress|  |
-| 3. Catalog Service | 0/4 | Not started | - |
+| 3. Catalog Service | 1/4 | In Progress|  |
 | 4. Cart Service | 0/TBD | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
 | 6. Notification Service | 0/TBD | Not started | - |

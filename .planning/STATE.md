@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 03
 current_phase_name: Catalog Service
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-08-27T11:33:48.733Z"
-last_activity: 2026-08-25
-last_activity_desc: Phase 02 execution started
-state_head: 6c96548f0b6cec07de1a97c7d6975458762a012d
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-08-27T12:10:46.515Z"
+last_activity: 2026-08-27
+last_activity_desc: Phase 03 execution started
+state_head: 02af5ff643bb595241ad8338325bcc2e015f647d
 progress:
   total_phases: 10
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-24)
 
 **Core value:** Complete end-to-end purchase journey — signup → browse → cart → checkout → payment → order status → notification — across all services through the gateway, verified by `docker compose up` plus a scripted smoke test.
-**Current focus:** Phase 02 — Auth Service
+**Current focus:** Phase 03 — Catalog Service
 
 ## Current Position
 
-Phase: 03 (Catalog Service) — READY TO EXECUTE
-Plan: 4 of 4
+Phase: 03 (Catalog Service) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-08-25 — Phase 02 execution started
+Last activity: 2026-08-27 — Phase 03 execution started
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [█░░░░░░░░░] 10%
 | Phase 02 P02 | 15min | 2 tasks | 12 files |
 | Phase 02 P03 | 28min | 2 tasks | 11 files |
 | Phase 02 P04 | 19min | 2 tasks | 4 files |
+| Phase 03 P01 | 50 min | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,11 @@ Recent decisions affecting current work:
 - [Phase 02]: Two-layer race-safe duplicate detection: findByEmail fast signal + users_email_uniq DataIntegrityViolation translation to identical 409 envelope (AUTH-01)
 - [Phase 02]: ERROR-dispatch law: deny-all chains must permit DispatcherType.ERROR so Boot renders true 404/500 (deny-all was masking all server error statuses as blanket 403) — Restores contracted status semantics; without it the mandated logout-absence proof (404/405) was unobservable — smoke gate now proves absence via true 404
 - [Phase 02]: Phase 02 closed with runtime absence enforcement: smoke-auth.sh step 7 fails permanently if a served /auth/logout route ever appears (T-02-absence) — AUTH-04 closed by two independent proofs: scripted runtime absence assertion + README policy statement referencing contract D-03
+- [Phase 03]: Catalog uses pymongo AsyncMongoClient (>=4.9); Motor forbidden per STACK.md. — Native asyncio client avoids deprecated Motor; matches research Pattern 5.
+- [Phase 03]: uv is the single dependency manager: committed uv.lock; Dockerfile installs via uv sync, README documents uv sync / uv run (parity with payment-service). — Single DM avoids drift; uv.lock pins the resolved graph per versions.md.
+- [Phase 03]: Unified error envelope emitted as compact json.dumps(separators=(',',':')) so byte-exact bodies (NOT_FOUND/UNAUTHORIZED) are reproducible and the /health grep matches '"status":"ok"'. — Exact-envelope assertions required by 03-PATTERNS Pattern 1/Shared Pattern 4.
+- [Phase 03]: require_auth dependency defined now (security.py) so Plan 04 admin routes import it without refactor; not yet wired to public routes per plan. — Satisfies T-03-01 default-deny mutating routes without later refactor (plan must-have).
+- [Phase 03]: Catalog is the third JWT_SECRET holder in v1 (with auth-service + gateway); self-verify is defense-in-depth; deviation recorded for DOCS-02 runbook. — json-interop.md names exactly two holders; catalog self-verify is a v1 deviation to document.
 
 ### Pending Todos
 
@@ -102,6 +108,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T18:49:55.857Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-08-27T12:09:51.631Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
