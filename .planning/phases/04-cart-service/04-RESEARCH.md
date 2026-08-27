@@ -353,20 +353,13 @@ function sendError(res, status, code, message) {
 | A4 | cart-service must hold `JWT_SECRET` to self-verify in Phase 4 (transitional), mirroring catalog-service DOCS-02 deviation from the "exactly two holders" rule. | Security Domain / Open Questions | If the team instead wants the gateway to verify now, cart can't self-verify pre-Phase-7. |
 | A5 | ioredis-mock TTL eviction is unreliable, so the CART-04 test uses a real Redis. | Common Pitfalls / Testing | If ioredis-mock proves reliable, the test can stay mock-only (simpler). |
 
-## Open Questions
+## Open Questions (RESOLVED by plan 04)
 
-1. **Add semantics for existing line (A1).**
-   - What we know: `POST /cart/items` "adds a product line"; `PATCH` "replaces the line's quantity" `[VERIFIED: cart-service.openapi.yaml:129-141,174-187]`.
-   - What's unclear: If product already in cart, does POST *add* to existing quantity or *replace* it?
-   - Recommendation: Implement **additive** (increment) — it matches the verb "add" and keeps PATCH as the sole quantity-setter (preserves D-04 single-writer-for-quantity clarity). Confirm with planner/discus.
+1. **Add semantics for existing line (A1).** **RESOLVED** — Planner adopted **additive** (increment) on `POST /cart/items` (04-01 step 5); `PATCH` remains the sole absolute quantity-setter (preserves D-04).
 
-2. **JWT holder list (A4).**
-   - What we know: `docs/json-interop.md:129` says holders are "auth-service and api-gateway — exactly two services," but catalog-service already deviates (DOCS-02) and cart must self-verify pre-Phase-7.
-   - What's unclear: Should cart-service be formally added to the holder list (like DOCS-02), or is it a temporary transitional holder removed in Phase 7?
-   - Recommendation: Add `JWT_SECRET` to cart-service env now (transitional), document as a DOCS-02-style deviation, and note Phase 7 gateway becomes sole verifier. Planner should record this explicitly.
+2. **JWT holder list (A4).** **RESOLVED** — cart-service self-verifies HS256 with the shared `JWT_SECRET` in Phase 4 as a transitional DOCS-02-style deviation (04-01 step 4, 04-03 README note); Phase 7 gateway becomes the sole verifier.
 
-3. **Empty-cart `updatedAt` (A2).**
-   - Recommendation: return current ISO timestamp; revisit if contract tightens.
+3. **Empty-cart `updatedAt` (A2).** **RESOLVED** — route substitutes current ISO-8601 timestamp when the blob lacks `updatedAt` (04-01 step 7).
 
 ## Environment Availability
 
