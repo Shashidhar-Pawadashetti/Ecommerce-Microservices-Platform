@@ -27,6 +27,19 @@ export class UnknownProduct extends CartServiceError {
   }
 }
 
+export class LineNotInCart extends CartServiceError {
+  constructor(productId) {
+    super('LINE_NOT_IN_CART', `Cart line not found: ${productId}`);
+    this.productId = productId;
+  }
+}
+
+export class NotFound extends CartServiceError {
+  constructor(message = 'The requested resource was not found.') {
+    super('NOT_FOUND', message);
+  }
+}
+
 export class CatalogUnavailable extends CartServiceError {
   constructor(message = 'Catalog unavailable.') {
     super('SERVICE_UNAVAILABLE', message);
@@ -43,6 +56,12 @@ export function sendError(res, status, code, message) {
 export function errorHandler(err, _req, res, _next) {
   if (err instanceof UnknownProduct) {
     return sendError(res, 404, 'UNKNOWN_PRODUCT', err.message);
+  }
+  if (err instanceof LineNotInCart) {
+    return sendError(res, 404, 'LINE_NOT_IN_CART', err.message);
+  }
+  if (err instanceof NotFound) {
+    return sendError(res, 404, 'NOT_FOUND', err.message);
   }
   if (err instanceof ValidationError) {
     return sendError(res, 400, 'VALIDATION_FAILED', err.message);

@@ -2,6 +2,7 @@
 import express from 'express';
 import { healthRouter } from './routes/health.js';
 import { cartRouter } from './routes/cart.js';
+import { internalRouter } from './routes/internal.js';
 import { errorHandler } from './errors.js';
 
 export const app = express();
@@ -12,6 +13,9 @@ app.use(express.json());
 app.use(healthRouter);
 // Cart operations live under /cart and are token-protected.
 app.use('/cart', cartRouter);
+// Network-internal checkout snapshot GET /cart/:userId (mounted at '/' so the
+// full path is /cart/:userId). Token-gated; excluded from the gateway in Phase 7.
+app.use(internalRouter);
 
 // 404 fallback via middleware (Express 5 forbids bare `*` route paths).
 app.use((_req, res) => {
