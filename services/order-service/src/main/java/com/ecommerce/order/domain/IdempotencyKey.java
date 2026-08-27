@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
  * Idempotency mapping for POST /orders (ORDR-05). The primary key IS the
  * client-supplied Idempotency-Key (16-255 enforced in application code); the
  * unique constraint is the race-safe duplicate guard against concurrent replays.
+ * Stores the app-generated orderId so a replay can re-serve the SAME order.
  */
 @Entity
 @Table(name = "idempotency_keys")
@@ -20,7 +21,7 @@ public class IdempotencyKey {
     @Column(name = "key", length = 255, nullable = false)
     private String key;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     private String orderId;
 
     @Column(name = "created_at", nullable = false)

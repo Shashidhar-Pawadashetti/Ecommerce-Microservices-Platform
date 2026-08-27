@@ -66,7 +66,8 @@ async def handle_order(
     await producer.send_and_wait(
         "payment.completed",
         key=order.orderId,
-        value=event.model_dump_json().encode("utf-8"),
+        # exclude_none=True => reason is OMITTED on APPROVED (interop Rule 4).
+        value=event.model_dump_json(exclude_none=True).encode("utf-8"),
     )
     logger.info("Produced payment.completed orderId=%s outcome=%s", order.orderId, outcome)
     return event
