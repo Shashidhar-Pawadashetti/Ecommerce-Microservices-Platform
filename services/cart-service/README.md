@@ -80,3 +80,49 @@ curl -s localhost:3001/health        # {"status":"ok"}
   the api-gateway becomes the **sole** verifier and this self-verify path is
   cleanly removed. The secret is only ever validated by decoded byte length; it
   is never logged.
+
+## Testing
+
+The service ships a container-free logic suite plus one real-Redis integration
+test that proves observable TTL expiry.
+
+- **Container-free logic suite (default):**
+
+  ```bash
+  npm test
+  ```
+
+  Runs `node --test` over `tests/test_auth.js`, `test_add.js`,
+  `test_update_remove.js`, `test_totals.js`, `test_persist.js`,
+  `test_internal.js`, and `test_ttl.js`. The TTL file is **skipped** unless
+  `RUN_REDIS_TTL=1` is set, so the default run needs no Redis.
+
+  How it stays container-free:
+  - `tests/_loader.mjs` (registered via `--import ./tests/loader-register.mjs`)
+    aliases the `ioredis` specifier to `ioredis-mock` at module-resolution time,
+    so the cart store hits an in-memory Redis. The alias is disabled when
+    `RUN_REDIS_TTL=1`, so the TTL test talks to a real server instead.
+  - `tests/conftest.js` intercepts the global `fetch` used by the catalog client,
+    returning an in-memory fake catalog (`prod-1001`, `prod-1002`). Unknown ids
+    are omitted, mirroring the contract's UNKNOWN_PRODUCT behavior, so no running
+    catalog-service is required.
+
+- **Observable TTL expiry (real Redis, CART-04):** ioredis-mock TTL eviction is
+  unreliable (research Assumption A5), so the TTL test must run against a live
+  Redis:
+
+  ```bash
+  RUN_REDIS_TTL=1 CART_TTL_SECONDS=2 REDIS_URL=redis://localhost:6379/1 npm test
+  ```
+
+  or just the TTL file:
+
+  ```bash
+  RUN_REDIS_TTL=1 CART_TTL_SECONDS=2 REDIS_URL=redis://localhost:6379/1 \
+    node --import ./tests/loader-register.mjs --test tests/test_ttl.js
+  ```
+
+  It asserts: after an add the `cart:{userId}` key exists with a positive TTL
+  near `CART_TTL_SECONDS`; a second mutation resets the TTL anchor; after the
+  window elapses the key is gone (`readTtl == -2`) and `GET /cart` returns an
+  empty items array (abandoned-cart expiry).

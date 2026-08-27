@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test"
+    "test": "node --import ./tests/loader-register.mjs --test tests/test_auth.js tests/test_add.js tests/test_update_remove.js tests/test_totals.js tests/test_persist.js tests/test_internal.js tests/test_ttl.js"
   },
   "dependencies": {
     "express": "5.2.1",
