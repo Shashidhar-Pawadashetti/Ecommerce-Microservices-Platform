@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 03
 current_phase_name: Catalog Service
-status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-08-27T12:32:16.269Z"
+status: verifying
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-08-27T12:42:10.094Z"
 last_activity: 2026-08-27
 last_activity_desc: Phase 03 execution started
-state_head: 4972e16c26eb81b37e94a0f3f47b183bdbb4f43a
+state_head: e2d75000042522e473b0a26ca02978966cbcd34a
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 13
   percent: 20
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 
 Phase: 03 (Catalog Service) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-27 — Phase 03 execution started
 
 Progress: [██░░░░░░░░] 20%
@@ -65,6 +65,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 03 P01 | 50 min | 2 tasks | 20 files |
 | Phase 03 P02 | 18 min | 2 tasks | 4 files |
 | Phase 03 P03 | 25min | 2 tasks | 27 files |
+| Phase 03-catalog-service P04 | 35min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Catalog listProducts uses explicit sort_spec with deterministic _id tie-break for repeatable pagination (CAT-04).
 - [Phase 03]: Category filter is exact-match only; q adds $text clause only when non-empty (T-03-03 NoSQL-injection guard).
 - [Phase 03]: 03-03: StaticFiles serves the whole static/ tree (mount root moved up one level) so the planned contract URL /catalog/static/products/{id}.svg resolves to static/products/{id}.svg; seed uses products_collection() public accessor from Plan 01 (no new Mongo connection logic).
+- [Phase 03]: Catalog is the third JWT_SECRET holder: self-verifies HS256 in-process because the api-gateway is Phase 7 but CAT-06 mandates 401-on-invalid in Phase 3; retained as defense-in-depth post-Phase-7; documented in README + slated for docs/runbook.md (DOCS-02).
 
 ### Pending Todos
 
@@ -113,6 +115,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-27T12:32:16.048Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-08-27T12:42:09.798Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None

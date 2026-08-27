@@ -29,7 +29,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **CAT-03**: Visitor can filter the catalog by category
 - [x] **CAT-04**: Visitor can search products by text query (with basic sort by price/name)
 - [x] **CAT-05**: Seed script populates ~20 realistic products including bundled placeholder images
-- [ ] **CAT-06**: Products can be created/updated/deleted via authenticated API calls (Swagger-driven; no admin UI)
+- [x] **CAT-06**: Products can be created/updated/deleted via authenticated API calls (Swagger-driven; no admin UI)
 
 ### Cart
 
@@ -138,7 +138,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CAT-03 | Phase 3 | Complete |
 | CAT-04 | Phase 3 | Complete |
 | CAT-05 | Phase 3 | Complete |
-| CAT-06 | Phase 3 | Pending |
+| CAT-06 | Phase 3 | Complete |
 | CART-01 | Phase 4 | Pending |
 | CART-02 | Phase 4 | Pending |
 | CART-03 | Phase 4 | Pending |
