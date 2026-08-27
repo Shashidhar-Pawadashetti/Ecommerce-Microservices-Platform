@@ -150,7 +150,10 @@ Plans:
   4. Killing and restarting the Payment Service mid-flow still ends in the correct final state — at-least-once redelivery demonstrated via console consumer or Kafka UI
   5. The cart is cleared after successful checkout, and the user can view order history and individual order detail suitable for frontend status polling
 
-**Plans**: TBD
+**Plans**: 1 plan (single `05-PLAN.md`, wave-ordered: tracer + 3 expansion waves)
+
+Plans:
+- [ ] 05-PLAN.md — Order+Payment Kafka saga: tracer end-to-end on real Kafka (ORDR-01/02/03/04/07), HTTP-replay idempotency + Redis SETNX (ORDR-03/04/05), cart-clear + order history/IDOR 404 (ORDR-04/06/07), kill/restart redelivery proof (ORDR-08)
 
 ### Phase 6: Notification Service
 
