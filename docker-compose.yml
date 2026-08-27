@@ -103,7 +103,48 @@ services:
       retries: 5
       start_period: 30s
 
+  # ── Phase 4: Redis 8 (cart datastore) ──────────────────────────────────
+  redis:
+    image: redis:8-alpine
+    # NO host port published — datastore stays network-internal (GTWY-04).
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ── Phase 4: Cart Service (Express 5 + ioredis) ────────────────────────
+  cart-service:
+    build: ./services/cart-service
+    # TRANSITIONAL HOST PORT — direct :3001 access for Phases 4–6 only;
+    # revoked in Phase 7 as part of GTWY-04 isolation verification (D-09).
+    ports:
+      - "3001:3001"
+    mem_limit: 256m
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS}
+      REDIS_URL: redis://redis:6379/0
+      CATALOG_URL: http://catalog-service:8000
+      CART_TTL_SECONDS: ${CART_TTL_SECONDS}
+    depends_on:
+      redis:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+    healthcheck:
+      # BusyBox wget (alpine) — grep the literal "ok" from /health.
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health | grep ok || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 volumes:
   pgdata:
   mongo-data:
+  redis-data:
 
