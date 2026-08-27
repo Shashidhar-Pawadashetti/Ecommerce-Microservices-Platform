@@ -12,6 +12,7 @@ files_modified:
   - services/order-service/src/main/java/com/ecommerce/order/OrderServiceApplication.java
   - services/order-service/src/main/java/com/ecommerce/order/config/JwtConfig.java
   - services/order-service/src/main/java/com/ecommerce/order/config/SecurityConfig.java
+  - services/order-service/src/main/java/com/ecommerce/order/security/RestAuthenticationEntryPoint.java
   - services/order-service/src/main/java/com/ecommerce/order/config/IdempotencyConfig.java
   - services/order-service/src/main/java/com/ecommerce/order/web/OrdersController.java
   - services/order-service/src/main/java/com/ecommerce/order/web/IdempotencyInterceptor.java
@@ -125,6 +126,7 @@ event-redelivery axes, order history/detail for polling, and a demonstrated cras
     services/order-service/src/main/java/com/ecommerce/order/OrderServiceApplication.java
     services/order-service/src/main/java/com/ecommerce/order/config/JwtConfig.java
     services/order-service/src/main/java/com/ecommerce/order/config/SecurityConfig.java
+    services/order-service/src/main/java/com/ecommerce/order/security/RestAuthenticationEntryPoint.java
     services/order-service/src/main/java/com/ecommerce/order/web/OrdersController.java
     services/order-service/src/main/java/com/ecommerce/order/web/GlobalExceptionHandler.java
     services/order-service/src/main/java/com/ecommerce/order/support/ApiError.java
@@ -276,7 +278,7 @@ event-redelivery axes, order history/detail for polling, and a demonstrated cras
       Phase 7 per A5 accepted debt; record in README); mem_limit 512m; env SPRING_DATASOURCE_URL=
       jdbc:postgresql://postgres:5432/orders, SPRING_DATASOURCE_USERNAME/PASSWORD from POSTGRES_*,
       SERVER_PORT=8082, KAFKA_BOOTSTRAP_SERVERS=kafka:9092, CART_SERVICE_URL=http://cart-service:3001,
-      JWT_*; depends_on postgres healthy, kafka-init, cart-service healthy; healthcheck wget
+       JWT_*; depends_on postgres healthy, orders-db-init, kafka-init, cart-service healthy; healthcheck wget
       actuator/health grep UP, start_period 60s.
     - payment-service: build ./services/payment-service; ports 8083:8083 (transitional); mem_limit
       512m; env KAFKA_BOOTSTRAP_SERVERS=kafka:9092, REDIS_URL=redis://redis:6379/0,
