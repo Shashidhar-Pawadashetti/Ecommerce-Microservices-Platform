@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -151,5 +152,16 @@ class OrderSagaIntegrationTests {
             Thread.sleep(200);
         }
         return false;
+    }
+
+    @Test
+    void otherOwnerCannotSeeOrder_returns404() throws Exception {
+        String key = "idem-" + UUID.randomUUID();
+        String orderId = JsonPath.read(checkout(key), "$.orderId");
+
+        // A different (non-owner) caller must get 404, never a 200 or 403 leak.
+        mvc.perform(get("/orders/" + orderId)
+                        .with(jwt().jwt(j -> j.subject("user-2").claim("email", "user-2@example.com"))))
+                .andExpect(status().isNotFound());
     }
 }
