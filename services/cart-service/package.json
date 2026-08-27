@@ -1,0 +1,21 @@
+{
+  "name": "cart-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cart Service — Node 24 / Express 5 / ioredis 6 (Phase 4 tracer)",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "ioredis": "6.0.0",
+    "jsonwebtoken": "9.0.3"
+  },
+  "devDependencies": {
+    "ioredis-mock": "8.13.1",
+    "supertest": "7.2.2"
+  }
+}
