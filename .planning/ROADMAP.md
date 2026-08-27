@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Contracts & Repo Scaffolding** - OpenAPI specs, Kafka topic contracts, JSON interop rules, pinned versions, monorepo skeleton — before any service code (completed 2026-08-25)
 - [ ] **Phase 2: Auth Service** - Java/Spring Boot signup/login/JWT//me on Postgres; first JVM-in-Docker proof with compose entry + healthcheck
 - [x] **Phase 3: Catalog Service** - Python/FastAPI product browse/search/filter/CRUD on MongoDB with idempotent ~20-product seed (completed 2026-08-27)
-- [ ] **Phase 4: Cart Service** - Node/Express session carts in Redis with server-side totals validated against Catalog
+- [x] **Phase 4: Cart Service** - Node/Express session carts in Redis with server-side totals validated against Catalog (completed 2026-08-27)
 - [ ] **Phase 5: Order + Payment Services** - Inseparable Kafka saga pair: checkout snapshot, mock payment, status state machine, redelivery proof
 - [ ] **Phase 6: Notification Service** - Node/kafkajs worker consuming both topics into Mailpit confirmation emails
 - [ ] **Phase 7: API Gateway** - Spring Cloud Gateway single ingress: routing, JWT enforcement, port revocation, rate limiting
@@ -128,13 +128,14 @@ Plans:
   3. A cart persists across sessions, keyed `cart:{userId}` in Redis
   4. An abandoned cart expires after the configurable Redis TTL, demonstrated in an observable test
 
-**Plans**: 4 plans (1 tracer + 3 expansion)
+**Plans**: 4/4 plans executed (1 tracer + 3 expansion)
 
 Plans:
-- [ ] 04-01-PLAN.md — Tracer (wave 1): scaffold cart-service + JWT-verified add→read live-priced totals loop through real Redis + real Catalog; wire redis + cart-service into compose
-- [ ] 04-02-PLAN.md — Wave 2: full cart CRUD (PATCH/DELETE item, DELETE cart) + 404 discrimination + internal GET /cart/:userId
-- [ ] 04-03-PLAN.md — Wave 2: Redis persistence + per-mutation TTL refresh (CART-03/CART-04); document Phase-4 JWT holder deviation
-- [ ] 04-04-PLAN.md — Wave 3: node:test + supertest suite incl. observable TTL expiry (real Redis)
+
+- [x] 04-01-PLAN.md — Tracer (wave 1): scaffold cart-service + JWT-verified add→read live-priced totals loop through real Redis + real Catalog; wire redis + cart-service into compose
+- [x] 04-02-PLAN.md — Wave 2: full cart CRUD (PATCH/DELETE item, DELETE cart) + 404 discrimination + internal GET /cart/:userId
+- [x] 04-03-PLAN.md — Wave 2: Redis persistence + per-mutation TTL refresh (CART-03/CART-04); document Phase-4 JWT holder deviation
+- [x] 04-04-PLAN.md — Wave 3: node:test + supertest suite incl. observable TTL expiry (real Redis)
 
 ### Phase 5: Order + Payment Services
 
@@ -232,7 +233,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
 | 2. Auth Service | 4/4 | In Progress|  |
 | 3. Catalog Service | 4/4 | Complete   | 2026-08-27 |
-| 4. Cart Service | 0/4 | Not started | - |
+| 4. Cart Service | 4/4 | In Progress|  |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
 | 6. Notification Service | 0/TBD | Not started | - |
 | 7. API Gateway | 0/TBD | Not started | - |
