@@ -1,0 +1,26 @@
+// config.js — environment binding for the Cart Service (Phase 4 tracer).
+//
+// Every value has a safe default so the service boots in dev/test without a
+// .env file. Production values are injected by Docker Compose. The JWT secret
+// is base64-encoded in the environment (mirrors auth-service's signer and the
+// catalog-service verifier); we expose a decoded-bytes getter so the signer
+// and verifier use byte-identical material.
+
+export const config = {
+  // Base64-encoded shared HS256 secret. Default matches catalog-service's
+  // default so the two transitional self-verifiers agree out-of-the-box.
+  jwtSecret: process.env.JWT_SECRET ?? 'sHwEj/+tlj4qr7PKfSqStWXV4ZnD4GPa9ImYNcXvHBM=',
+  jwtIssuer: process.env.JWT_ISSUER ?? 'ecommerce-auth',
+  jwtAudience: process.env.JWT_AUDIENCE ?? 'ecommerce-api',
+  jwtTtlSeconds: parseInt(process.env.JWT_TTL_SECONDS ?? '3600', 10),
+  redisUrl: process.env.REDIS_URL ?? 'redis://redis:6379/0',
+  catalogUrl: process.env.CATALOG_URL ?? 'http://catalog-service:8000',
+  cartTtlSeconds: parseInt(process.env.CART_TTL_SECONDS ?? '1209600', 10),
+  port: parseInt(process.env.PORT ?? '3001', 10),
+};
+
+// Decoded raw secret bytes for jsonwebtoken HS256 verify/sign.
+// MUST match the auth-service signer (base64-decoded) — see docs/json-interop.md.
+export function jwtSecretBytes() {
+  return Buffer.from(config.jwtSecret, 'base64');
+}
