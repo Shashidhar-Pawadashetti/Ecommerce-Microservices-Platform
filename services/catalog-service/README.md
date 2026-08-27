@@ -15,10 +15,14 @@ read paths exactly per `docs/api-contracts/catalog-service.openapi.yaml`.
 | GET    | `/catalog/products`         | public      | Paginated product list (filter/search/sort) |
 | POST   | `/catalog/products/batch`   | network-int | Current name+priceCents for known IDs (omits unknown) |
 | GET    | `/catalog/products/{id}`    | public      | Single product by id (404 NOT_FOUND if unknown) |
+| POST   | `/catalog/products`         | admin (JWT) | Create a product (201 Product) — Plan 04 / CAT-06 |
+| PUT    | `/catalog/products/{id}`    | admin (JWT) | Replace a product (200 Product) — Plan 04 / CAT-06 |
+| DELETE | `/catalog/products/{id}`    | admin (JWT) | Delete a product (204) — Plan 04 / CAT-06 |
 | GET    | `/health`                   | network-int | Liveness probe (`{"status":"ok"}`)       |
 
-Mutating routes (create/update/delete) arrive in Plan 04, gated by the
-`require_auth` dependency defined in `app/security.py`.
+Admin (mutating) routes are gated by the `require_auth` dependency defined in
+`app/security.py` and declared `bearerAuth` in their OpenAPI operation so Swagger
+shows the lock. The public read paths above keep `security: []`.
 
 ## Environment
 

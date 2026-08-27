@@ -42,6 +42,10 @@ def require_auth(
             algorithms=["HS256"],
             audience=settings.jwt_audience,
             issuer=settings.jwt_issuer,
+            # Contract accepts a ±60s clock skew on exp (docs/json-interop.md §JWT Claims).
+            leeway=60,
         )
     except jwt.PyJWTError:
+        # One byte-identical envelope for every auth failure (missing, expired,
+        # wrong iss/aud, alg swap, foreign signature) — no enumeration signal.
         raise HTTPException(status_code=401, detail=UNAUTHORIZED_BODY)
