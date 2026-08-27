@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from pymongo import ASCENDING, TEXT
+from pymongo.collection import Collection
 from pymongo.errors import OperationFailure
 
 from .config import settings
@@ -54,6 +55,15 @@ async def close() -> None:
     _client = None
     _db = None
     _products = None
+
+
+def products_collection() -> Collection:
+    """Public accessor for the products collection (used by seed/admin code).
+
+    Reuses the Plan 01 connection — callers must run ``connect()`` first.
+    """
+    assert _products is not None, "connect() must run before products_collection()"
+    return _products
 
 
 def _doc_to_product(doc: dict) -> dict:

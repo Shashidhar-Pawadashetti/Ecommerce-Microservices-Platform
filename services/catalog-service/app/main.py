@@ -86,7 +86,12 @@ async def validation_exception_handler(
     )
 
 
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "products")
+# Serve the whole ``static/`` tree so committed assets resolve under their
+# planned root-relative URLs, e.g. /catalog/static/products/prod-1001.svg
+# (file: static/products/prod-1001.svg). The /catalog/static mount prefix is
+# unchanged from Plan 01; only the served directory root moves up one level so
+# the ``products`` path segment in the URL maps to the on-disk folder.
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/catalog/static", StaticFiles(directory=STATIC_DIR), name="catalog-static")
 
