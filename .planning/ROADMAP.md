@@ -128,7 +128,13 @@ Plans:
   3. A cart persists across sessions, keyed `cart:{userId}` in Redis
   4. An abandoned cart expires after the configurable Redis TTL, demonstrated in an observable test
 
-**Plans**: TBD
+**Plans**: 4 plans (1 tracer + 3 expansion)
+
+Plans:
+- [ ] 04-01-PLAN.md — Tracer (wave 1): scaffold cart-service + JWT-verified add→read live-priced totals loop through real Redis + real Catalog; wire redis + cart-service into compose
+- [ ] 04-02-PLAN.md — Wave 2: full cart CRUD (PATCH/DELETE item, DELETE cart) + 404 discrimination + internal GET /cart/:userId
+- [ ] 04-03-PLAN.md — Wave 2: Redis persistence + per-mutation TTL refresh (CART-03/CART-04); document Phase-4 JWT holder deviation
+- [ ] 04-04-PLAN.md — Wave 3: node:test + supertest suite incl. observable TTL expiry (real Redis)
 
 ### Phase 5: Order + Payment Services
 
@@ -226,7 +232,7 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | 1. Contracts & Repo Scaffolding | 5/5 | Complete    | 2026-08-25 |
 | 2. Auth Service | 4/4 | In Progress|  |
 | 3. Catalog Service | 4/4 | Complete   | 2026-08-27 |
-| 4. Cart Service | 0/TBD | Not started | - |
+| 4. Cart Service | 0/4 | Not started | - |
 | 5. Order + Payment Services | 0/TBD | Not started | - |
 | 6. Notification Service | 0/TBD | Not started | - |
 | 7. API Gateway | 0/TBD | Not started | - |
