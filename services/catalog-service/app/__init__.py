@@ -1,0 +1,1 @@
+"""Catalog Service application package."""
