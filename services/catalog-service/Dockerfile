@@ -1,17 +1,17 @@
 # Catalog Service — FastAPI + PyMongo (AsyncMongoClient) + MongoDB 8.0
 # Single dependency manager: uv (committed uv.lock, `uv sync` workflow).
-FROM python:3.13-slim
+# Multi-stage build: build tools (uv, pip cache) stay in builder; runtime is clean.
+
+# ── Stage 1: Builder ──────────────────────────────────────────────────
+FROM python:3.13-slim AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1
 
-# Install uv (tooling) — the sole dependency manager for this service.
+# Install uv (tooling) — only needed during build.
 RUN pip install --no-cache-dir uv
-
-# Non-root runtime user (mirrors auth-service Dockerfile conventions).
-RUN groupadd -r app && useradd -r -g app app
 
 WORKDIR /app
 
@@ -21,6 +21,21 @@ RUN uv sync --frozen --no-dev
 
 # Copy application source.
 COPY . .
+
+# ── Stage 2: Runtime ─────────────────────────────────────────────────
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Non-root runtime user (mirrors auth-service Dockerfile conventions).
+RUN groupadd -r app && useradd -r -g app app
+
+WORKDIR /app
+
+# Copy only the venv and application source from builder — no uv, no pip cache.
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app /app
 
 USER app
 

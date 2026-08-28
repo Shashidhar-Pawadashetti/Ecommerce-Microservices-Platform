@@ -1,14 +1,10 @@
+# Dev overrides — auto-loaded by `docker compose up`.
+# Base service definition (ports, healthcheck, mem_limit) lives in docker-compose.yml.
 services:
   frontend:
-    build:
-      context: ./services/frontend
-    ports:
-      - "3000:3000"
+    environment:
+      - NODE_ENV=development
     volumes:
       - ./services/frontend:/app
       - /app/node_modules
       - /app/.next
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - api-gateway
