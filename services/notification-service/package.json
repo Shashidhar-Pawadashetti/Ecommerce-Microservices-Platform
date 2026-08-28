@@ -1,0 +1,16 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "Notification worker for Ecommerce Microservices Platform",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "kafkajs": "2.2.4",
+    "nodemailer": "9.0.5"
+  },
+  "devDependencies": {
+  }
+}

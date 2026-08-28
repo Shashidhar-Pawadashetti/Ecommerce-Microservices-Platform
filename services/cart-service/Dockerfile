@@ -6,13 +6,13 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 # Production deps only (--omit=dev). The dev-peer of ioredis-mock never affects
 # the runtime image, so this install is clean.
-RUN npm ci --omit=dev --no-audit --no-fund
+RUN npm ci --omit=dev --no-audit --no-fund --legacy-peer-deps
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
 
 # Non-root runtime user (mirrors auth-service / catalog-service conventions).
-RUN addgroup -S app && adduser -r -S -G app app
+RUN addgroup -S app && adduser -S -G app app
 
 # Bring in production node_modules + manifest + source.
 COPY --from=deps /app/node_modules ./node_modules

@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Cart Service** - Node/Express session carts in Redis with server-side totals validated against Catalog (completed 2026-08-27)
 - [x] **Phase 5: Order + Payment Services** - Inseparable Kafka saga pair: checkout snapshot, mock payment, status state machine, redelivery proof (completed 2026-08-27)
 - [ ] **Phase 6: Notification Service** - Node/kafkajs worker consuming both topics into Mailpit confirmation emails
-- [ ] **Phase 7: API Gateway** - Spring Cloud Gateway single ingress: routing, JWT enforcement, port revocation, rate limiting
+- [x] **Phase 7: API Gateway** - Spring Cloud Gateway single ingress: routing, JWT enforcement, port revocation, rate limiting
 - [ ] **Phase 8: Frontend** - Next.js storefront: browse, cart, checkout with polling confirmation, order history through same-origin proxy
 - [ ] **Phase 9: Orchestration Audit** - Cold-start reproducibility (`down -v && up` → all healthy) + zero-manual-steps scripted E2E smoke test
 - [ ] **Phase 10: Handoff Documentation** - Finalized architecture doc and runbook so a new engineer can run/reset/debug from docs alone
@@ -238,8 +238,8 @@ Phases execute in numeric order: 1 → 2 ∥ 3 → 4 → 5 → 6 ∥ 7 → 8 →
 | 3. Catalog Service | 4/4 | Complete   | 2026-08-27 |
 | 4. Cart Service | 4/4 | Complete   | 2026-08-27 |
 | 5. Order + Payment Services | 1/1 | Complete   | 2026-08-27 |
-| 6. Notification Service | 0/TBD | Not started | - |
-| 7. API Gateway | 0/TBD | Not started | - |
+| 6. Notification Service | 0/1 | Planned | - |
+| 7. API Gateway | 1/1 | Complete | 2026-08-28 |
 | 8. Frontend | 0/TBD | Not started | - |
 | 9. Orchestration Audit | 0/TBD | Not started | - |
 | 10. Handoff Documentation | 0/TBD | Not started | - |
