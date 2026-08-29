@@ -29,13 +29,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final IdempotencyRepository idempotencyRepository;
     private final CartClient cartClient;
+    private final com.ecommerce.order.outbox.OutboxRepository outboxRepository;
 
     public OrderService(OrderRepository orderRepository,
                         IdempotencyRepository idempotencyRepository,
-                        CartClient cartClient) {
+                        CartClient cartClient,
+                        com.ecommerce.order.outbox.OutboxRepository outboxRepository) {
         this.orderRepository = orderRepository;
         this.idempotencyRepository = idempotencyRepository;
         this.cartClient = cartClient;
+        this.outboxRepository = outboxRepository;
     }
 
     /**
@@ -46,7 +49,7 @@ public class OrderService {
      * lands here and is re-routed to the existing order.
      */
     @Transactional
-    public Order createOrder(String sub, String idemKey, String authHeader) {
+    public Order createOrder(String sub, String email, String idemKey, String authHeader) {
         CartClient.CartView cart = cartClient.snapshot(sub, authHeader);
         List<OrderItem> items = cart.items().stream()
                 .map(line -> new OrderItem(line.productId(), line.name(), line.unitPriceCents(), line.quantity()))
@@ -60,6 +63,15 @@ public class OrderService {
         order.setCurrency(cart.currency());
         order.setStatus(OrderStatus.PENDING_PAYMENT);
         Order saved = orderRepository.save(order);
+
+        // Transactional outbox pattern: persist event in the same transaction
+        com.ecommerce.order.outbox.OutboxEvent event = new com.ecommerce.order.outbox.OutboxEvent(
+                "Order",
+                saved.getOrderId(),
+                "order.created",
+                com.ecommerce.order.kafka.OrderCreatedPayload.from(saved, email).toJson()
+        );
+        outboxRepository.save(event);
 
         if (idemKey != null && !idemKey.isBlank()) {
             try {

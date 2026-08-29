@@ -48,9 +48,9 @@ async def handle_order(
     Redis SETNX dedup short-circuited a redelivery."""
     dedup_key = f"payment:authorized:{order.orderId}"
 
-    # SETNX: first delivery sets the key and proceeds; any redelivery finds the
-    # key already present and is a no-op (no second authorize + produce).
-    if not await redis_client.set(dedup_key, order.orderId, nx=True):
+    # GET: first delivery finds nothing and proceeds; any redelivery after success finds the key
+    # already present and is a no-op.
+    if await redis_client.get(dedup_key):
         logger.info("Dedup skip: orderId=%s already authorized", order.orderId)
         return None
 
@@ -63,6 +63,8 @@ async def handle_order(
         reason=reason,
         processedAt=iso_ms(datetime.now(timezone.utc)),
     )
+    
+    # 1. Produce event successfully first
     await producer.send_and_wait(
         "payment.completed",
         key=order.orderId,
@@ -70,6 +72,11 @@ async def handle_order(
         value=event.model_dump_json(exclude_none=True).encode("utf-8"),
     )
     logger.info("Produced payment.completed orderId=%s outcome=%s", order.orderId, outcome)
+    
+    # 2. Mark dedup key with 1 hour TTL. If we crash before this, the redelivery is safe
+    # because payment.completed is idempotent on the consumer side.
+    await redis_client.set(dedup_key, order.orderId, ex=3600)
+    
     return event
 
 

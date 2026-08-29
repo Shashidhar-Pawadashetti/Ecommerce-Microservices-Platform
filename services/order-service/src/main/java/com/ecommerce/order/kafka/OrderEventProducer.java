@@ -24,9 +24,8 @@ public class OrderEventProducer {
         this.template = template;
     }
 
-    public void publishCreated(Order order, String userEmail) {
-        OrderCreatedPayload payload = OrderCreatedPayload.from(order, userEmail);
-        template.send(TOPIC, order.getOrderId(), payload.toJson());
-        log.info("Published order.created orderId={}", order.getOrderId());
+    public void publishCreated(String orderId, String payload) {
+        template.send(TOPIC, orderId, payload);
+        log.info("Published order.created from outbox orderId={}", orderId);
     }
 }

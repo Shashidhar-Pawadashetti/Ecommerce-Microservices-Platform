@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface Order {
-  id: string;
+  orderId: string;
   userId: string;
-  status: string; // PENDING, PAID, COMPLETED, CANCELLED, etc.
-  totalAmount: number;
+  status: string; // PENDING_PAYMENT, PAID, PAYMENT_FAILED
+  totalCents: number;
   currency: string;
   createdAt: string;
 }
@@ -33,7 +33,7 @@ export default function OrderStatusPage() {
 
   // Stop polling once the order reaches a final state
   useEffect(() => {
-    if (order && (order.status === "COMPLETED" || order.status === "PAID" || order.status === "CANCELLED" || order.status === "FAILED")) {
+    if (order && (order.status === "PAID" || order.status === "PAYMENT_FAILED" || order.status === "CANCELLED" || order.status === "FAILED")) {
       setShouldPoll(false);
     }
   }, [order]);
@@ -46,18 +46,18 @@ export default function OrderStatusPage() {
     <div className="container mx-auto p-4 max-w-2xl">
       <div className="bg-white rounded shadow-lg p-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Order Status</h1>
-        <p className="text-gray-500 mb-8">Order ID: {order.id}</p>
+        <p className="text-gray-500 mb-8">Order ID: {order.orderId}</p>
         
         <div className="mb-8">
           <div className="text-sm text-gray-500 uppercase tracking-wide mb-1">Status</div>
           <div className={`text-2xl font-bold ${
-            order.status === "PENDING" ? "text-yellow-500" :
-            order.status === "COMPLETED" || order.status === "PAID" ? "text-green-500" :
+            order.status === "PENDING_PAYMENT" ? "text-yellow-500" :
+            order.status === "PAID" ? "text-green-500" :
             "text-red-500"
           }`}>
             {order.status}
           </div>
-          {order.status === "PENDING" && (
+          {order.status === "PENDING_PAYMENT" && (
             <p className="text-sm text-gray-500 mt-2">Waiting for payment confirmation... This page will auto-refresh.</p>
           )}
         </div>
@@ -66,7 +66,7 @@ export default function OrderStatusPage() {
           <div className="flex justify-between items-center border-b pb-2 mb-2">
             <span className="font-semibold">Total Amount</span>
             <span className="font-bold text-lg">
-              {(order.totalAmount / 100).toLocaleString("en-US", {
+              {(order.totalCents / 100).toLocaleString("en-US", {
                 style: "currency",
                 currency: order.currency,
               })}
@@ -78,10 +78,10 @@ export default function OrderStatusPage() {
           </div>
         </div>
 
-        {order.status === "PENDING" && (
+        {order.status === "PENDING_PAYMENT" && (
           <div className="mt-4 p-4 border rounded border-blue-200 bg-blue-50 text-blue-800 text-sm text-left">
-            <strong>Note for dev flow:</strong> Since we don't have a UI payment form yet, you can simulate payment success via API: <br />
-            <code>curl -X POST http://localhost:8080/payment/process -H "Content-Type: application/json" -d '{`{"orderId":"${order.id}","amount":${order.totalAmount},"currency":"${order.currency}"}`}'</code>
+            <strong>Payment Processing</strong> <br />
+            Payment is simulated automatically in the background based on the PAYMENT_MODE configuration. Keep this page open to see the result.
           </div>
         )}
 

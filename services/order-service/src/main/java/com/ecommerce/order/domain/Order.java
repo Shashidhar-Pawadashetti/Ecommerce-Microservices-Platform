@@ -14,6 +14,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import jakarta.persistence.Version;
+
 /**
  * The system-of-record order. Status starts at PENDING_PAYMENT and transitions
  * to PAID | PAYMENT_FAILED exclusively via payment.completed consumption under
@@ -26,6 +28,10 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version = 0L;
 
     @Column(name = "order_id", nullable = false, unique = true)
     private String orderId;

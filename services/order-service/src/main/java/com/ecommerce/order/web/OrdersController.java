@@ -18,7 +18,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.ecommerce.order.domain.Order;
 import com.ecommerce.order.domain.OrderService;
 import com.ecommerce.order.domain.OrderStatus;
-import com.ecommerce.order.kafka.OrderEventProducer;
 import com.ecommerce.order.config.CartClient;
 import com.ecommerce.order.support.ApiError;
 import com.ecommerce.order.support.EmptyCartException;
@@ -40,13 +39,10 @@ public class OrdersController {
     private static final Logger log = LoggerFactory.getLogger(OrdersController.class);
 
     private final OrderService orderService;
-    private final OrderEventProducer eventProducer;
     private final CartClient cartClient;
 
-    public OrdersController(OrderService orderService, OrderEventProducer eventProducer,
-                            CartClient cartClient) {
+    public OrdersController(OrderService orderService, CartClient cartClient) {
         this.orderService = orderService;
-        this.eventProducer = eventProducer;
         this.cartClient = cartClient;
     }
 
@@ -63,13 +59,10 @@ public class OrdersController {
         String sub = authentication.getName();
         String email = extractEmail(authentication);
 
-        // Transaction commits inside createOrder (order + idempotency row).
-        Order order = orderService.createOrder(sub, idemKey, bearer(authentication));
+        // Transaction commits inside createOrder (order + idempotency row + outbox event).
+        Order order = orderService.createOrder(sub, email, idemKey, bearer(authentication));
 
-        // Publish order.created ONLY after the commit (ORDR-02 dual-write ordering).
-        eventProducer.publishCreated(order, email);
-
-        // Clear the cart after a successful publish (best-effort).
+        // Clear the cart after a successful checkout (best-effort).
         cartClient.clear(bearer(authentication));
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
