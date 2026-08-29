@@ -74,7 +74,7 @@ export default function ProductDetailPage() {
           <div className="text-2xl font-bold mb-6">
             {(product.priceCents / 100).toLocaleString("en-US", {
               style: "currency",
-              currency: product.currency,
+              currency: product.currency || "USD",
             })}
           </div>
 
