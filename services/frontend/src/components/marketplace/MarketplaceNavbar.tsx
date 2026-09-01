@@ -39,7 +39,7 @@ const DEPARTMENTS = [
 export function MarketplaceNavbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { location, setLocation, searchCategory, setSearchCategory } = useStore();
+  const { location, setLocation, searchCategory, setSearchCategory, userProfile } = useStore();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedDept, setSelectedDept] = useState(searchParams.get("category") || searchCategory || "");
@@ -195,10 +195,12 @@ export function MarketplaceNavbar() {
               className="flex items-center gap-1.5 p-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition-all text-left cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-slate-950 font-bold text-xs shadow-md">
-                <User className="h-4 w-4" />
+                {userProfile?.fullName ? userProfile.fullName[0].toUpperCase() : <User className="h-4 w-4" />}
               </div>
               <div className="hidden lg:flex flex-col">
-                <span className="text-[10px] text-slate-400 leading-none">Hello, Shopper</span>
+                <span className="text-[10px] text-slate-400 leading-none">
+                  Hello, {userProfile?.fullName ? userProfile.fullName.split(" ")[0] : "Shopper"}
+                </span>
                 <span className="text-xs font-bold text-white flex items-center gap-0.5 leading-tight">
                   Account & Lists <ChevronDown className="h-3 w-3" />
                 </span>
@@ -209,8 +211,19 @@ export function MarketplaceNavbar() {
             {isAccountOpen && (
               <div className="absolute right-0 mt-2 w-64 glass-panel bg-slate-900 border border-white/10 rounded-2xl p-4 shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95">
                 <div className="pb-3 border-b border-white/10">
-                  <p className="font-bold text-white text-sm">Your Nexora Account</p>
-                  <p className="text-slate-400 text-[11px]">Authenticated JWT Session</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-white text-sm truncate max-w-[170px]">
+                      {userProfile?.fullName || "Your Nexora Account"}
+                    </p>
+                    {userProfile?.accountType && (
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                        {userProfile.accountType}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-slate-400 text-[11px] truncate">
+                    {userProfile?.email || "Authenticated JWT Session"}
+                  </p>
                 </div>
 
                 <div className="py-2 space-y-1">

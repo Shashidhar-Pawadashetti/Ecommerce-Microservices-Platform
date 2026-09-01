@@ -9,6 +9,14 @@ interface LocationInfo {
   country: string;
 }
 
+export interface UserProfileInfo {
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  accountType?: string;
+  preferredRegion?: string;
+}
+
 interface StoreContextType {
   toast: ToastMessage | null;
   showToast: (msg: Omit<ToastMessage, "id">) => void;
@@ -20,6 +28,8 @@ interface StoreContextType {
   removeFromSavedForLater: (productId: string) => void;
   searchCategory: string;
   setSearchCategory: (cat: string) => void;
+  userProfile: UserProfileInfo | null;
+  setUserProfile: (profile: UserProfileInfo | null) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -33,6 +43,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     country: "US",
   });
   const [savedForLater, setSavedForLater] = useState<CartItem[]>([]);
+  const [userProfile, setUserProfileState] = useState<UserProfileInfo | null>(null);
 
   // Load saved data from localStorage on mount
   useEffect(() => {
@@ -42,6 +53,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const storedSaved = localStorage.getItem("ecom_saved_for_later");
       if (storedSaved) setSavedForLater(JSON.parse(storedSaved));
+
+      const storedProfile = localStorage.getItem("ecom_user_profile");
+      if (storedProfile) setUserProfileState(JSON.parse(storedProfile));
     } catch (e) {
       // Ignore storage errors
     }
@@ -51,6 +65,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setLocationState(loc);
     try {
       localStorage.setItem("ecom_delivery_location", JSON.stringify(loc));
+    } catch (e) {}
+  };
+
+  const setUserProfile = (profile: UserProfileInfo | null) => {
+    setUserProfileState(profile);
+    try {
+      if (profile) {
+        localStorage.setItem("ecom_user_profile", JSON.stringify(profile));
+      } else {
+        localStorage.removeItem("ecom_user_profile");
+      }
     } catch (e) {}
   };
 
@@ -98,6 +123,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         removeFromSavedForLater,
         searchCategory,
         setSearchCategory,
+        userProfile,
+        setUserProfile,
       }}
     >
       {children}
