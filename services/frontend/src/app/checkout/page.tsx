@@ -27,7 +27,7 @@ import { useStore } from "@/providers/StoreContext";
 const DELIVERY_OPTIONS: DeliveryOption[] = [
   {
     id: "prime",
-    title: "FREE EcoPrime Next-Day Delivery",
+    title: "FREE Nexora Express Delivery",
     description: "Guaranteed delivery tomorrow by 8:00 PM",
     priceCents: 0,
     estimatedDate: "Tomorrow",
@@ -88,14 +88,14 @@ export default function CheckoutPage() {
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
     const code = promoCode.trim().toUpperCase();
-    if (code === "AMAZON20" || code === "PRIME20") {
+    if (code === "NEXORA20" || code === "NEXORA25" || code === "PRIME20") {
       setPromoDiscountPct(20);
-      setPromoMessage("✓ Promo code applied: 20% discount on all items!");
-    } else if (code === "SAVE10" || code === "PRIME10") {
+      setPromoMessage("✓ Promo code applied: 20% instant discount on all items!");
+    } else if (code === "KAFKAPOWER" || code === "SAVE10") {
       setPromoDiscountPct(10);
-      setPromoMessage("✓ Promo code applied: 10% discount on all items!");
+      setPromoMessage("✓ Promo code applied: 10% instant discount on all items!");
     } else {
-      setPromoMessage("Invalid promo code. Try 'AMAZON20' or 'SAVE10'.");
+      setPromoMessage("Invalid promo code. Try 'NEXORA20' or 'KAFKAPOWER'.");
     }
   };
 
@@ -141,8 +141,8 @@ export default function CheckoutPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
-        <p className="text-slate-400 text-sm font-semibold">Preparing Amazon checkout...</p>
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
+        <p className="text-slate-400 text-sm font-semibold">Preparing Nexora checkout...</p>
       </div>
     );
   }
@@ -165,11 +165,11 @@ export default function CheckoutPage() {
 
   return (
     <PageWrapper className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-      {/* Breadcrumb Header */}
+      {/* Header */}
       <div className="flex items-center justify-between pb-6 mb-8 border-b border-white/10">
         <Link
           href="/cart"
-          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors gap-1.5"
+          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-cyan-400 transition-colors gap-1.5"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Return to Cart
         </Link>
@@ -192,13 +192,13 @@ export default function CheckoutPage() {
           <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs">
+                <span className="w-6 h-6 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center font-bold text-xs">
                   1
                 </span>
-                <h2 className="text-base font-bold text-white">Shipping Address</h2>
+                <h2 className="text-base font-bold text-white">Shipping Destination</h2>
               </div>
               <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Address Confirmed
+                <CheckCircle2 className="h-3.5 w-3.5" /> Destination Verified
               </span>
             </div>
 
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setShippingAddress({ ...shippingAddress, fullName: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
 
@@ -223,7 +223,7 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setShippingAddress({ ...shippingAddress, phoneNumber: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
 
@@ -235,7 +235,7 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setShippingAddress({ ...shippingAddress, addressLine1: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
 
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setShippingAddress({ ...shippingAddress, city: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
 
@@ -260,7 +260,7 @@ export default function CheckoutPage() {
                     onChange={(e) =>
                       setShippingAddress({ ...shippingAddress, state: e.target.value })
                     }
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   />
                 </div>
                 <div>
@@ -271,20 +271,20 @@ export default function CheckoutPage() {
                     onChange={(e) =>
                       setShippingAddress({ ...shippingAddress, zipCode: e.target.value })
                     }
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── STEP 2: DELIVERY OPTIONS ── */}
+          {/* ── STEP 2: DELIVERY SPEED ── */}
           <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-xl">
             <div className="flex items-center gap-2.5 mb-4">
-              <span className="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs">
+              <span className="w-6 h-6 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center font-bold text-xs">
                 2
               </span>
-              <h2 className="text-base font-bold text-white">Choose a Delivery Speed</h2>
+              <h2 className="text-base font-bold text-white">Choose Delivery Velocity</h2>
             </div>
 
             <div className="space-y-3">
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
                   key={option.id}
                   className={`flex items-start justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
                     selectedDelivery === option.id
-                      ? "bg-slate-800/90 border-amber-400 shadow-md ring-1 ring-amber-400"
+                      ? "bg-slate-800/90 border-cyan-400 shadow-md ring-1 ring-cyan-400"
                       : "bg-slate-900/50 border-white/5 hover:border-white/20"
                   }`}
                 >
@@ -303,7 +303,7 @@ export default function CheckoutPage() {
                       name="deliveryOption"
                       checked={selectedDelivery === option.id}
                       onChange={() => setSelectedDelivery(option.id)}
-                      className="mt-1 text-amber-500 focus:ring-amber-400 bg-slate-900 border-white/20"
+                      className="mt-1 text-cyan-500 focus:ring-cyan-400 bg-slate-900 border-white/20"
                     />
                     <div>
                       <p className="font-bold text-xs text-white flex items-center gap-1.5">
@@ -331,19 +331,19 @@ export default function CheckoutPage() {
           {/* ── STEP 3: PAYMENT METHOD ── */}
           <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-xl">
             <div className="flex items-center gap-2.5 mb-4">
-              <span className="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs">
+              <span className="w-6 h-6 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center font-bold text-xs">
                 3
               </span>
-              <h2 className="text-base font-bold text-white">Payment Method</h2>
+              <h2 className="text-base font-bold text-white">Payment Method & Wallet</h2>
             </div>
 
             {/* Visual Card Mockup */}
-            <div className="p-4 rounded-2xl bg-gradient-to-tr from-slate-800 to-indigo-950 border border-white/10 text-xs text-white space-y-3 mb-4">
+            <div className="p-4 rounded-2xl bg-gradient-to-tr from-slate-800 via-indigo-950 to-slate-900 border border-white/10 text-xs text-white space-y-3 mb-4">
               <div className="flex justify-between items-center">
-                <span className="font-bold uppercase tracking-wider text-[10px] text-amber-400">
-                  EcoPrime Visa Rewards Signature
+                <span className="font-bold uppercase tracking-wider text-[10px] text-cyan-400">
+                  Nexora Visa Cloud Rewards Signature
                 </span>
-                <CreditCard className="h-5 w-5 text-slate-300" />
+                <CreditCard className="h-5 w-5 text-cyan-300" />
               </div>
               <p className="font-mono text-base tracking-widest">{cardDetails.number}</p>
               <div className="flex justify-between items-end text-[10px] text-slate-400">
@@ -376,7 +376,7 @@ export default function CheckoutPage() {
               disabled={checkoutMutation.isPending}
               variant="primary"
               size="lg"
-              className="w-full shadow-amber-500/25"
+              className="w-full shadow-cyan-500/25"
             >
               {checkoutMutation.isPending ? (
                 <>
@@ -388,7 +388,7 @@ export default function CheckoutPage() {
             </AnimeButton>
 
             <p className="text-[10px] text-slate-400 text-center leading-tight">
-              By placing your order, you agree to EcoPrime&apos;s conditions of use and privacy notice.
+              By placing your order, you agree to Nexora&apos;s conditions of use and privacy notice.
             </p>
 
             <div className="pt-4 border-t border-white/10 space-y-2.5 text-xs">
@@ -405,7 +405,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex justify-between text-slate-300">
-                <span>Shipping & Handling:</span>
+                <span>Shipping (Nexora Express):</span>
                 <span>
                   {shippingCents === 0
                     ? "FREE"
@@ -436,7 +436,7 @@ export default function CheckoutPage() {
 
               <div className="pt-3 border-t border-white/10 flex justify-between items-baseline">
                 <span className="font-bold text-sm text-white">Order Total:</span>
-                <span className="font-black text-2xl text-amber-400">
+                <span className="font-black text-2xl text-cyan-400">
                   {((grandTotalPayableCents || 0) / 100).toLocaleString("en-US", {
                     style: "currency",
                     currency,
@@ -456,12 +456,12 @@ export default function CheckoutPage() {
                     type="text"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Enter code (e.g. AMAZON20)"
-                    className="flex-1 px-3 py-1.5 rounded-xl bg-slate-800 border border-white/10 text-white text-xs uppercase focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="Enter code (e.g. NEXORA20)"
+                    className="flex-1 px-3 py-1.5 rounded-xl bg-slate-800 border border-white/10 text-white text-xs uppercase focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   />
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold border border-white/10 transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-bold border border-white/10 transition-colors cursor-pointer"
                   >
                     Apply
                   </button>

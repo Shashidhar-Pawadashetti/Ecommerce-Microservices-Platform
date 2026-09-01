@@ -16,7 +16,7 @@ const INITIAL_REVIEWS: Review[] = [
     rating: 5,
     title: "Exceptional quality and lightning fast delivery!",
     comment:
-      "Arrived the very next day with EcoPrime. The build quality exceeds expectations. The microservices backend integration is silky smooth and instant.",
+      "Arrived the very next day with Nexora Express. The build quality exceeds expectations. The microservices backend integration is silky smooth and instant.",
     date: "August 28, 2026",
     verifiedPurchase: true,
     helpfulCount: 42,
@@ -66,7 +66,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     e.preventDefault();
     const newRev: Review = {
       id: `rev-${Date.now()}`,
-      author: newAuthor || "Verified Customer",
+      author: newAuthor || "Verified Buyer",
       rating: newRating,
       title: newTitle || "Verified Customer Review",
       comment: newComment,
@@ -93,7 +93,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     <div className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/[0.08] shadow-xl my-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-white/10">
         <div>
-          <h3 className="text-2xl font-black text-white">Customer Reviews</h3>
+          <h3 className="text-2xl font-black text-white">Customer Reviews & Ratings</h3>
           <p className="text-xs text-slate-400 mt-1">
             Real feedback from verified purchasers of {productName}
           </p>
@@ -101,7 +101,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer"
+          className="px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer"
         >
           <MessageSquarePlus className="h-4 w-4" /> Write a Customer Review
         </button>
@@ -118,7 +118,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                   <Star key={i} className="h-4 w-4 fill-amber-400" />
                 ))}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">1,248 global ratings</p>
+              <p className="text-xs text-slate-400 mt-0.5">1,248 verified ratings</p>
             </div>
           </div>
 
@@ -141,7 +141,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-xs text-slate-300">
             <p className="font-bold text-white mb-1">Review this product</p>
             <p className="text-slate-400 text-[11px] mb-3">
-              Share your thoughts with other customers to help them make informed decisions.
+              Share your thoughts with other Nexora customers to help them make informed choices.
             </p>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -157,7 +157,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
           {reviews.map((rev) => (
             <div key={rev.id} className="pb-6 border-b border-white/5 last:border-0 last:pb-0">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-xs text-white">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-bold text-xs text-slate-950">
                   {rev.author[0]}
                 </div>
                 <div>
@@ -176,8 +176,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
               </div>
 
               {rev.verifiedPurchase && (
-                <p className="text-[11px] font-bold text-amber-400/90 flex items-center gap-1 mb-2">
-                  <CheckCircle2 className="h-3 w-3" /> Verified Purchase
+                <p className="text-[11px] font-bold text-cyan-400/90 flex items-center gap-1 mb-2">
+                  <CheckCircle2 className="h-3 w-3" /> Verified Nexora Buyer
                 </p>
               )}
 
@@ -188,7 +188,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 disabled={votedReviews[rev.id]}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-white/5 transition-colors disabled:opacity-60 cursor-pointer"
               >
-                <ThumbsUp className="h-3 w-3" />
+                <ThumbsUp className="h-3 w-3 text-cyan-400" />
                 <span>{votedReviews[rev.id] ? "Helpful (Voted)" : "Helpful"}</span>
                 {rev.helpfulCount > 0 && <span className="text-slate-400">({rev.helpfulCount})</span>}
               </button>
@@ -243,7 +243,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                   value={newAuthor}
                   onChange={(e) => setNewAuthor(e.target.value)}
                   placeholder="e.g. Jordan S."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-white/10 text-white text-xs focus:ring-2 focus:ring-amber-400 focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                   required
                 />
               </div>
@@ -257,7 +257,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. Fantastic performance and build quality"
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-white/10 text-white text-xs focus:ring-2 focus:ring-amber-400 focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                   required
                 />
               </div>
@@ -269,9 +269,9 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="What did you like or dislike about this product?"
+                  placeholder="What did you like or dislike about this item?"
                   rows={4}
-                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-white/10 text-white text-xs focus:ring-2 focus:ring-amber-400 focus:outline-none resize-none"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-slate-800 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400 focus:outline-none resize-none"
                   required
                 />
               </div>
@@ -286,7 +286,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-xs hover:brightness-110 transition-all shadow-md shadow-amber-500/20"
+                  className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 font-bold text-xs hover:brightness-110 transition-all shadow-md shadow-cyan-500/20"
                 >
                   Submit Review
                 </button>

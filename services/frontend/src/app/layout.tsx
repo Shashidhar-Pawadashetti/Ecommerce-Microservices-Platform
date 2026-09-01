@@ -3,9 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import QueryProvider from "@/providers/QueryProvider";
 import { StoreProvider } from "@/providers/StoreContext";
-import { AmazonMegaNavbar } from "@/components/amazon/AmazonMegaNavbar";
-import { AmazonFooter } from "@/components/amazon/AmazonFooter";
-import { ToastNotification } from "@/components/amazon/ToastNotification";
+import { MarketplaceNavbar } from "@/components/marketplace/MarketplaceNavbar";
+import { MarketplaceFooter } from "@/components/marketplace/MarketplaceFooter";
+import { ToastNotification } from "@/components/marketplace/ToastNotification";
+import { MicroservicesTelemetryDrawer } from "@/components/marketplace/MicroservicesTelemetryDrawer";
 import { AnimeBackground } from "@/components/anime/AnimeBackground";
 import "./globals.css";
 
@@ -20,8 +21,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EcoPrime — Event-Driven Microservices Commerce",
-  description: "Amazon-grade e-commerce marketplace powered by Spring Boot, FastAPI, Node.js, and Kafka KRaft.",
+  title: "Nexora — Event-Driven Cloud Commerce Platform",
+  description: "Enterprise e-commerce marketplace powered by Spring Boot 3.5, FastAPI, Node.js 24, and Kafka 4.2 KRaft.",
 };
 
 export default function RootLayout({
@@ -32,22 +33,23 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#090d16] text-slate-100 selection:bg-amber-500/30 selection:text-amber-300 min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#070b13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-300 min-h-screen flex flex-col`}
       >
         <QueryProvider>
           <StoreProvider>
             <AnimeBackground />
             <div className="relative z-10 flex min-h-screen flex-col justify-between">
               <div>
-                <Suspense fallback={<div className="h-16 bg-[#0d131f]" />}>
-                  <AmazonMegaNavbar />
+                <Suspense fallback={<div className="h-16 bg-[#0b101b]" />}>
+                  <MarketplaceNavbar />
                 </Suspense>
                 <ToastNotification />
                 <main className="flex-1">
                   {children}
                 </main>
               </div>
-              <AmazonFooter />
+              <MicroservicesTelemetryDrawer />
+              <MarketplaceFooter />
             </div>
           </StoreProvider>
         </QueryProvider>

@@ -19,7 +19,6 @@ export function ProductCard({ product }: ProductCardProps) {
     currency: product.currency || "USD",
   });
 
-  // Calculate simulated Amazon list price (15% higher)
   const listPriceCents = Math.round((product.priceCents || 0) * 1.15);
   const formattedListPrice = (listPriceCents / 100).toLocaleString("en-US", {
     style: "currency",
@@ -72,13 +71,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const reviewCount = product.reviewCount || 1248;
 
   return (
-    <div className="anime-stagger-item group relative flex flex-col justify-between overflow-hidden rounded-3xl glass-card border border-white/[0.08] hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/10">
+    <div className="anime-stagger-item group relative flex flex-col justify-between overflow-hidden rounded-3xl glass-card border border-white/[0.08] hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10">
       {/* Visual Header */}
       <div className="relative aspect-[4/3] w-full bg-gradient-to-b from-slate-800/60 to-slate-900/80 overflow-hidden flex items-center justify-center p-6">
-        {/* Amazon's Choice / Best Seller Ribbon */}
+        {/* Ribbon Badges */}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 uppercase tracking-wider shadow-md">
-            Best Seller
+          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 uppercase tracking-wider shadow-md">
+            Top Rated
           </span>
           <span
             className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-gradient-to-r border backdrop-blur-md ${getCategoryColor(
@@ -110,14 +109,14 @@ export function ProductCard({ product }: ProductCardProps) {
           href={`/product/${product.id}`}
           className="relative z-10 p-5 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 group-hover:rotate-2 transition-all duration-500 shadow-inner"
         >
-          <ShoppingBag className="h-12 w-12 text-indigo-400 group-hover:text-amber-400 transition-colors" />
+          <ShoppingBag className="h-12 w-12 text-cyan-400 group-hover:text-pink-400 transition-colors" />
         </Link>
       </div>
 
       {/* Product Content */}
       <div className="flex flex-col flex-1 p-5">
         <Link href={`/product/${product.id}`}>
-          <h3 className="text-base font-bold text-white mb-1.5 line-clamp-1 group-hover:text-amber-400 transition-colors">
+          <h3 className="text-base font-bold text-white mb-1.5 line-clamp-1 group-hover:text-cyan-400 transition-colors">
             {product.name}
           </h3>
         </Link>
@@ -134,16 +133,16 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <p className="text-xs text-slate-400 mb-4 line-clamp-2 leading-relaxed">
-          {product.description || "Engineered for high performance and durability."}
+          {product.description || "Engineered for high performance, low latency, and durability."}
         </p>
 
-        {/* Prime Next-Day Delivery Badge */}
+        {/* Next-Day Delivery Badge */}
         <div className="flex items-center gap-1.5 text-[11px] font-bold text-cyan-400 mb-4">
           <Zap className="h-3.5 w-3.5 fill-cyan-400 text-cyan-400" />
-          <span>FREE Tomorrow Delivery</span>
+          <span>FREE Tomorrow Express Delivery</span>
         </div>
 
-        {/* Price, List Price & Quick Add */}
+        {/* Price & Quick Add */}
         <div className="mt-auto flex items-center justify-between pt-3 border-t border-white/5">
           <div className="flex flex-col">
             <div className="flex items-baseline gap-1.5">
@@ -156,7 +155,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={() => addToCartMutation.mutate()}
             disabled={addToCartMutation.isPending || product.stock === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 transition-all shadow-md shadow-cyan-500/20 cursor-pointer disabled:opacity-50"
             title="Quick Add to Cart"
           >
             {addToCartMutation.isPending ? (

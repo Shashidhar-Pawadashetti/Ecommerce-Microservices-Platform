@@ -64,7 +64,7 @@ export default function OrdersPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
         <p className="text-slate-400 text-sm font-semibold">Loading orders from PostgreSQL database...</p>
       </div>
     );
@@ -74,7 +74,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto p-8 max-w-md text-center min-h-[60vh] flex flex-col items-center justify-center">
         <div className="glass-panel p-8 rounded-3xl border border-white/10 w-full flex flex-col items-center">
-          <div className="p-4 rounded-full bg-amber-500/10 text-amber-400 mb-4">
+          <div className="p-4 rounded-full bg-cyan-500/10 text-cyan-400 mb-4">
             <Package className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-black text-white mb-2">Your Orders</h1>
@@ -105,9 +105,9 @@ export default function OrdersPage() {
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black text-white">Your Orders</h1>
+          <h1 className="text-3xl font-black text-white">Your Purchase History</h1>
           <p className="text-xs text-slate-400 mt-1">
-            Track shipments, return items, or buy again from your purchase history.
+            Track shipments, return items, or buy again from your past transactions.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function OrdersPage() {
             placeholder="Search all orders..."
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
         </div>
       </div>
@@ -130,7 +130,7 @@ export default function OrdersPage() {
           onClick={() => setTimeFilter("all")}
           className={`pb-3 -mb-3 border-b-2 transition-colors cursor-pointer ${
             timeFilter === "all"
-              ? "border-amber-400 text-amber-400"
+              ? "border-cyan-400 text-cyan-400"
               : "border-transparent hover:text-white"
           }`}
         >
@@ -140,7 +140,7 @@ export default function OrdersPage() {
           onClick={() => setTimeFilter("buy-again")}
           className={`pb-3 -mb-3 border-b-2 transition-colors cursor-pointer ${
             timeFilter === "buy-again"
-              ? "border-amber-400 text-amber-400"
+              ? "border-cyan-400 text-cyan-400"
               : "border-transparent hover:text-white"
           }`}
         >
@@ -150,11 +150,11 @@ export default function OrdersPage() {
           onClick={() => setTimeFilter("not-shipped")}
           className={`pb-3 -mb-3 border-b-2 transition-colors cursor-pointer ${
             timeFilter === "not-shipped"
-              ? "border-amber-400 text-amber-400"
+              ? "border-cyan-400 text-cyan-400"
               : "border-transparent hover:text-white"
           }`}
         >
-          Not Yet Shipped
+          In Transit
         </button>
       </div>
 
@@ -165,7 +165,7 @@ export default function OrdersPage() {
           </div>
           <h2 className="text-xl font-bold text-white mb-2">No orders found</h2>
           <p className="text-slate-400 text-xs mb-6 max-w-sm mx-auto">
-            Explore our curated catalog and place your first order with EcoPrime delivery.
+            Explore our curated catalog and place your first order with Nexora Express delivery.
           </p>
           <Link href="/">
             <AnimeButton variant="primary">Explore Deals</AnimeButton>
@@ -176,9 +176,9 @@ export default function OrdersPage() {
           {filteredOrders.map((order) => (
             <div
               key={order.orderId}
-              className="anime-stagger-item glass-card rounded-3xl border border-white/[0.08] overflow-hidden shadow-xl hover:border-amber-500/40 transition-all"
+              className="anime-stagger-item glass-card rounded-3xl border border-white/[0.08] overflow-hidden shadow-xl hover:border-cyan-500/40 transition-all"
             >
-              {/* Order Card Amazon Header */}
+              {/* Order Card Header */}
               <div className="bg-slate-900/90 px-6 py-4 border-b border-white/5 flex flex-wrap justify-between items-center gap-4 text-xs">
                 <div className="flex flex-wrap items-center gap-6">
                   <div>
@@ -204,7 +204,7 @@ export default function OrdersPage() {
 
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400">Ship To</span>
-                    <p className="font-bold text-amber-400">Alex Johnson</p>
+                    <p className="font-bold text-cyan-400">Alex Johnson</p>
                   </div>
                 </div>
 
@@ -215,7 +215,7 @@ export default function OrdersPage() {
                   </div>
                   <Link
                     href={`/order/${order.orderId}`}
-                    className="text-amber-400 hover:text-amber-300 font-bold underline"
+                    className="text-cyan-400 hover:text-cyan-300 font-bold underline"
                   >
                     View details
                   </Link>
@@ -225,7 +225,7 @@ export default function OrdersPage() {
               {/* Order Card Body */}
               <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                 <div className="flex items-start gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-800 text-amber-400 shrink-0">
+                  <div className="p-4 rounded-2xl bg-slate-800 text-cyan-400 shrink-0">
                     <ShoppingBag className="h-8 w-8" />
                   </div>
 
@@ -258,7 +258,7 @@ export default function OrdersPage() {
                     </h3>
 
                     <p className="text-xs text-slate-400">
-                      Shipped via EcoPrime Priority Courier Tracking #ECM-
+                      Dispatched via Nexora Priority Tracking #NEX-
                       {order.orderId.slice(0, 6).toUpperCase()}
                     </p>
                   </div>
@@ -268,7 +268,7 @@ export default function OrdersPage() {
                 <div className="flex flex-col sm:w-48 gap-2 w-full">
                   <Link
                     href={`/order/${order.orderId}`}
-                    className="w-full py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs text-center shadow-md transition-all"
+                    className="w-full py-2 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs text-center shadow-md transition-all"
                   >
                     Track Package
                   </Link>

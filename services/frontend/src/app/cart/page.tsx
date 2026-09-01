@@ -18,6 +18,7 @@ import {
   Gift,
   CheckCircle2,
   ShieldCheck,
+  Zap,
 } from "lucide-react";
 import { PageWrapper } from "@/components/anime/PageWrapper";
 import { AnimeButton } from "@/components/anime/AnimeButton";
@@ -136,7 +137,7 @@ export default function CartPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
         <p className="text-slate-400 text-sm font-semibold">Loading Redis Cart...</p>
       </div>
     );
@@ -146,7 +147,7 @@ export default function CartPage() {
     return (
       <div className="container mx-auto p-8 max-w-md text-center min-h-[60vh] flex flex-col items-center justify-center">
         <div className="glass-panel border border-white/10 p-8 rounded-3xl w-full flex flex-col items-center">
-          <div className="p-4 rounded-full bg-amber-500/10 text-amber-400 mb-4">
+          <div className="p-4 rounded-full bg-cyan-500/10 text-cyan-400 mb-4">
             <ShoppingCart className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-black text-white mb-2">Your Shopping Cart</h1>
@@ -171,7 +172,6 @@ export default function CartPage() {
   const totalItemsCount =
     cart?.items?.reduce((acc, item) => acc + (item.quantity || 1), 0) || 0;
 
-  // Free shipping threshold ($35.00)
   const freeShippingThresholdCents = 3500;
   const currentTotalCents = cart?.grandTotalCents || 0;
   const freeShippingProgress = Math.min(
@@ -189,7 +189,7 @@ export default function CartPage() {
       <div className="flex justify-between items-center mb-6">
         <Link
           href="/"
-          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors gap-1"
+          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-cyan-400 transition-colors gap-1"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Continue Shopping
         </Link>
@@ -221,16 +221,16 @@ export default function CartPage() {
             <div className="p-4 rounded-2xl bg-slate-800/80 border border-white/5 my-4">
               {remainingForFreeShipping === 0 ? (
                 <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 mb-2">
-                  <CheckCircle2 className="h-4 w-4" /> Your order qualifies for FREE Prime Delivery!
+                  <CheckCircle2 className="h-4 w-4" /> Your order qualifies for FREE Nexora Express Delivery!
                 </p>
               ) : (
                 <p className="text-xs text-slate-300 mb-2">
-                  Add <strong className="text-amber-400">${(remainingForFreeShipping / 100).toFixed(2)}</strong> of eligible items to get <strong className="text-white">FREE Prime Delivery</strong>.
+                  Add <strong className="text-cyan-400">${(remainingForFreeShipping / 100).toFixed(2)}</strong> of eligible items to get <strong className="text-white">FREE Express Delivery</strong>.
                 </p>
               )}
               <div className="w-full h-2 rounded-full bg-slate-900 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-full transition-all duration-500"
                   style={{ width: `${freeShippingProgress}%` }}
                 />
               </div>
@@ -238,7 +238,7 @@ export default function CartPage() {
 
             {!cart || !cart.items || cart.items.length === 0 ? (
               <div className="text-center py-12 border-t border-white/5">
-                <p className="text-base font-bold text-white mb-1">Your EcoPrime Cart is empty</p>
+                <p className="text-base font-bold text-white mb-1">Your Nexora Cart is empty</p>
                 <p className="text-xs text-slate-400 mb-6">
                   Check out today&apos;s recommendations or items you saved for later.
                 </p>
@@ -254,13 +254,13 @@ export default function CartPage() {
                     className="anime-stagger-item py-5 flex flex-col sm:flex-row justify-between items-start gap-4"
                   >
                     <div className="flex items-start gap-4 flex-1">
-                      <div className="p-3.5 rounded-2xl bg-slate-800 border border-white/5 text-amber-400 shrink-0">
+                      <div className="p-3.5 rounded-2xl bg-slate-800 border border-white/5 text-cyan-400 shrink-0">
                         <ShoppingCart className="h-7 w-7" />
                       </div>
                       <div>
                         <h3 className="font-bold text-sm text-white">{item.name || `Product #${item.productId}`}</h3>
                         <p className="text-xs text-emerald-400 font-semibold mt-0.5">In Stock</p>
-                        <p className="text-[11px] text-slate-400 mt-1">Eligible for FREE Prime Delivery</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Eligible for FREE Express Delivery</p>
 
                         {/* Actions Row */}
                         <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-slate-400">
@@ -298,7 +298,7 @@ export default function CartPage() {
 
                           <button
                             onClick={() => handleSaveForLater(item)}
-                            className="hover:text-amber-400 transition-colors cursor-pointer"
+                            className="hover:text-cyan-400 transition-colors cursor-pointer"
                           >
                             Save for later
                           </button>
@@ -349,7 +349,7 @@ export default function CartPage() {
                   >
                     <div>
                       <p className="font-bold text-xs text-white truncate">{item.name}</p>
-                      <p className="text-xs font-black text-amber-400 mt-1">
+                      <p className="text-xs font-black text-cyan-400 mt-1">
                         {((item.unitPriceCents || 0) / 100).toLocaleString("en-US", {
                           style: "currency",
                           currency: cart?.currency || "USD",
@@ -359,7 +359,7 @@ export default function CartPage() {
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleMoveToCart(item)}
-                        className="flex-1 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-colors"
+                        className="flex-1 py-1.5 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-[11px] transition-colors"
                       >
                         Move to cart
                       </button>
@@ -404,21 +404,21 @@ export default function CartPage() {
                   type="checkbox"
                   checked={isGift}
                   onChange={(e) => setIsGift(e.target.checked)}
-                  className="rounded border-white/20 bg-slate-800 text-amber-500 focus:ring-amber-400"
+                  className="rounded border-white/20 bg-slate-800 text-cyan-500 focus:ring-cyan-400"
                 />
-                <Gift className="h-3.5 w-3.5 text-amber-400" />
-                <span>This order contains a gift</span>
+                <Gift className="h-3.5 w-3.5 text-pink-400" />
+                <span>This order contains gift packaging</span>
               </label>
 
               <Link href="/checkout" className="block w-full">
-                <AnimeButton size="lg" variant="primary" className="w-full shadow-amber-500/20">
+                <AnimeButton size="lg" variant="primary" className="w-full shadow-cyan-500/20">
                   Proceed to Checkout <ArrowRight className="h-4 w-4" />
                 </AnimeButton>
               </Link>
 
               <div className="pt-4 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-slate-400">
                 <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                <span>EcoPrime 256-Bit SSL Encrypted Checkout</span>
+                <span>Nexora 256-Bit SSL Encrypted Checkout</span>
               </div>
             </div>
           </div>

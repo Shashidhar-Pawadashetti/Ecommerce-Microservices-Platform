@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Zap, RotateCcw, Check } from "lucide-react";
+import { Star, Zap, RotateCcw, Check, Sparkles } from "lucide-react";
 
 interface CatalogFilterSidebarProps {
   category: string;
@@ -19,9 +19,9 @@ interface CatalogFilterSidebarProps {
 const CATEGORIES = [
   { id: "", label: "All Categories" },
   { id: "electronics", label: "Electronics" },
-  { id: "clothing", label: "Apparel & Fashion" },
-  { id: "books", label: "Books & Literature" },
-  { id: "accessories", label: "Audio & Accessories" },
+  { id: "clothing", label: "Apparel & Style" },
+  { id: "books", label: "Books & Research" },
+  { id: "accessories", label: "Audio & Hardware" },
 ];
 
 const PRICE_RANGES = [
@@ -48,16 +48,16 @@ export function CatalogFilterSidebar({
   return (
     <aside className="w-full lg:w-64 glass-panel bg-slate-900/70 rounded-3xl p-5 border border-white/[0.08] text-xs space-y-6 shrink-0">
       <div className="flex items-center justify-between pb-3 border-b border-white/10">
-        <span className="font-bold text-sm text-white">Filters</span>
+        <span className="font-bold text-sm text-white">Marketplace Filters</span>
         <button
           onClick={onClearFilters}
-          className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+          className="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer"
         >
           Reset All
         </button>
       </div>
 
-      {/* Prime Delivery Filter */}
+      {/* Nexora Prime Delivery Filter */}
       <div>
         <h4 className="font-bold text-white uppercase tracking-wider text-[11px] mb-2.5">
           Delivery Program
@@ -67,10 +67,10 @@ export function CatalogFilterSidebar({
             type="checkbox"
             checked={isPrimeOnly}
             onChange={(e) => onPrimeToggle(e.target.checked)}
-            className="rounded border-white/20 bg-slate-800 text-amber-500 focus:ring-amber-400"
+            className="rounded border-white/20 bg-slate-800 text-cyan-500 focus:ring-cyan-400"
           />
           <span className="inline-flex items-center gap-1 font-bold text-cyan-400">
-            <Zap className="h-3.5 w-3.5 fill-cyan-400" /> EcoPrime FREE Delivery
+            <Zap className="h-3.5 w-3.5 fill-cyan-400" /> Nexora Express Next-Day
           </span>
         </label>
       </div>
@@ -85,9 +85,9 @@ export function CatalogFilterSidebar({
             <li key={cat.id}>
               <button
                 onClick={() => onCategoryChange(cat.id)}
-                className={`w-full text-left py-1 px-2 rounded-xl transition-colors cursor-pointer ${
+                className={`w-full text-left py-1.5 px-2.5 rounded-xl transition-colors cursor-pointer ${
                   category === cat.id
-                    ? "font-bold text-amber-400 bg-amber-500/10"
+                    ? "font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20"
                     : "text-slate-300 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -101,7 +101,7 @@ export function CatalogFilterSidebar({
       {/* Customer Reviews Star Filter */}
       <div>
         <h4 className="font-bold text-white uppercase tracking-wider text-[11px] mb-2.5">
-          Customer Reviews
+          Customer Rating
         </h4>
         <div className="space-y-1.5">
           {[4, 3, 2, 1].map((stars) => (
@@ -110,7 +110,7 @@ export function CatalogFilterSidebar({
               onClick={() => onMinRatingChange(minRating === stars ? 0 : stars)}
               className={`w-full flex items-center gap-1.5 py-1 px-2 rounded-xl transition-colors cursor-pointer ${
                 minRating === stars
-                  ? "font-bold text-amber-400 bg-amber-500/10"
+                  ? "font-bold text-cyan-400 bg-cyan-500/10"
                   : "text-slate-300 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -142,7 +142,7 @@ export function CatalogFilterSidebar({
                 onClick={() => onPriceRangeChange(priceRange === r.id ? "" : r.id)}
                 className={`w-full text-left py-1 px-2 rounded-xl transition-colors cursor-pointer ${
                   priceRange === r.id
-                    ? "font-bold text-amber-400 bg-amber-500/10"
+                    ? "font-bold text-cyan-400 bg-cyan-500/10"
                     : "text-slate-300 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -163,7 +163,7 @@ export function CatalogFilterSidebar({
             type="checkbox"
             checked={inStockOnly}
             onChange={(e) => onInStockToggle(e.target.checked)}
-            className="rounded border-white/20 bg-slate-800 text-amber-500 focus:ring-amber-400"
+            className="rounded border-white/20 bg-slate-800 text-cyan-500 focus:ring-cyan-400"
           />
           <span>In Stock Only</span>
         </label>

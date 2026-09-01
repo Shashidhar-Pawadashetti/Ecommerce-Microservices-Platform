@@ -13,10 +13,12 @@ import {
   Tag,
   PackageOpen,
   Filter,
+  Gift,
 } from "lucide-react";
 import { LandingPage } from "@/components/LandingPage";
 import { ProductCard } from "@/components/ProductCard";
-import { CatalogFilterSidebar } from "@/components/amazon/CatalogFilterSidebar";
+import { CatalogFilterSidebar } from "@/components/marketplace/CatalogFilterSidebar";
+import { PerksVaultDrawer } from "@/components/marketplace/PerksVaultDrawer";
 import { AnimeStagger } from "@/components/anime/AnimeStagger";
 import { AnimeText } from "@/components/anime/AnimeText";
 import { Product } from "@/types";
@@ -35,7 +37,6 @@ function HomeContent() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState("featured");
 
-  // Sync with URL
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchTerm) params.set("q", searchTerm);
@@ -60,13 +61,11 @@ function HomeContent() {
     },
   });
 
-  // Client-side faceted filtering & sorting
   const filteredProducts = useMemo(() => {
     if (!products) return [];
 
     let list = [...products];
 
-    // Price range filter
     if (priceRange) {
       const [minStr, maxStr] = priceRange.split("-");
       const minCents = parseInt(minStr) * 100;
@@ -76,17 +75,14 @@ function HomeContent() {
       );
     }
 
-    // Min rating filter
     if (minRating > 0) {
       list = list.filter((p) => (p.rating || 4.8) >= minRating);
     }
 
-    // In-stock only filter
     if (inStockOnly) {
       list = list.filter((p) => p.stock === undefined || p.stock > 0);
     }
 
-    // Sorting
     if (sortBy === "price-asc") {
       list.sort((a, b) => a.priceCents - b.priceCents);
     } else if (sortBy === "price-desc") {
@@ -114,47 +110,51 @@ function HomeContent() {
       {/* ── HERO LANDING PAGE SECTION ── */}
       <LandingPage />
 
-      {/* ── LIVE AMAZON CATALOG SECTION ── */}
+      {/* ── LIVE NEXORA MARKETPLACE CATALOG SECTION ── */}
       <section id="catalog-section" className="w-full max-w-7xl mx-auto px-4 md:px-6 py-12">
-        {/* Deal of the Day Banner */}
-        <div className="mb-10 p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-indigo-950/40 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        {/* Deal of the Day & Perks Banner */}
+        <div className="mb-10 p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-indigo-500/15 to-pink-950/30 border border-cyan-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-amber-500 text-slate-950 font-black">
+            <div className="p-3 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 text-slate-950 font-black">
               <Flame className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500 text-slate-950">
-                  Deal of the Day
+                <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500 text-slate-950">
+                  Featured Deals
                 </span>
-                <span className="text-xs font-bold text-amber-400">Ends in 06:42:19</span>
+                <span className="text-xs font-bold text-cyan-300">Live KRaft 4.2 Stream</span>
               </div>
               <h3 className="text-base sm:text-lg font-black text-white mt-1">
-                Save up to 25% on High-Performance Microservices Hardware
+                Save up to 25% on Enterprise Microservices Hardware & Devices
               </h3>
             </div>
           </div>
-          <button
-            onClick={() => setPriceRange("100-300")}
-            className="px-5 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition-colors shrink-0 cursor-pointer"
-          >
-            Explore Deals
-          </button>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <PerksVaultDrawer />
+            <button
+              onClick={() => setPriceRange("100-300")}
+              className="px-5 py-2.5 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-md transition-colors cursor-pointer"
+            >
+              Explore Top Deals
+            </button>
+          </div>
         </div>
 
         {/* Results Bar & Sort Control */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-white/10">
           <div>
             <h2 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
-              <span>Marketplace Results</span>
+              <span>Nexora Catalog</span>
               {category && (
                 <span className="text-sm font-normal text-slate-400">
-                  in <strong className="text-amber-400">&ldquo;{category}&rdquo;</strong>
+                  in <strong className="text-cyan-400">&ldquo;{category}&rdquo;</strong>
                 </span>
               )}
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Showing {filteredProducts.length} of {products?.length || 0} products available
+              Showing {filteredProducts.length} of {products?.length || 0} items available
             </p>
           </div>
 
@@ -164,7 +164,7 @@ function HomeContent() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-amber-400 cursor-pointer"
+              className="bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-1.5 text-xs font-bold focus:ring-2 focus:ring-cyan-400 cursor-pointer"
             >
               <option value="featured">Featured</option>
               <option value="price-asc">Price: Low to High</option>
@@ -198,7 +198,7 @@ function HomeContent() {
           <div className="flex-1 w-full">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-64 gap-4 glass-panel rounded-3xl p-8">
-                <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
+                <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
                 <p className="text-slate-400 text-sm font-semibold">
                   Querying FastAPI Catalog Service & MongoDB...
                 </p>
@@ -219,7 +219,7 @@ function HomeContent() {
                 </p>
                 <button
                   onClick={handleClearFilters}
-                  className="px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs"
+                  className="px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs"
                 >
                   Reset All Filters
                 </button>
@@ -247,7 +247,7 @@ export default function Home() {
     <Suspense
       fallback={
         <div className="flex h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
         </div>
       }
     >

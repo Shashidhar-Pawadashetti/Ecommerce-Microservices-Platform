@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Printer, Package2, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { X, Printer, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { OrderSnapshot } from "@/types";
 
 interface InvoiceModalProps {
@@ -13,7 +13,7 @@ export function InvoiceModal({ order, onClose }: InvoiceModalProps) {
     window.print();
   };
 
-  const invoiceNum = `INV-${order.orderId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()}`;
+  const invoiceNum = `INV-NEX-${order.orderId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()}`;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
@@ -25,7 +25,7 @@ export function InvoiceModal({ order, onClose }: InvoiceModalProps) {
               onClick={handlePrint}
               className="px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 cursor-pointer"
             >
-              <Printer className="h-4 w-4 text-amber-400" /> Print Receipt / Invoice
+              <Printer className="h-4 w-4 text-cyan-400" /> Print Receipt / Invoice
             </button>
           </div>
           <button
@@ -36,26 +36,26 @@ export function InvoiceModal({ order, onClose }: InvoiceModalProps) {
           </button>
         </div>
 
-        {/* Invoice Printable Document */}
+        {/* Invoice Document */}
         <div className="py-6 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="p-1.5 rounded-lg bg-amber-500 text-slate-950">
-                  <Package2 className="h-5 w-5" />
+                <div className="p-1.5 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 text-slate-950 font-black">
+                  <Package className="h-5 w-5" />
                 </div>
                 <span className="text-xl font-black text-white">
-                  Eco<span className="text-amber-400">Prime</span>
+                  NEX<span className="text-cyan-400">ORA</span> <span className="text-xs text-slate-400 font-normal">Cloud Commerce</span>
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Retail & Microservices Fulfillment Inc.</p>
+              <p className="text-[11px] text-slate-400">Nexora Global Microservices Inc.</p>
               <p className="text-[11px] text-slate-400">410 Terry Ave N, Seattle, WA 98109</p>
             </div>
 
             <div className="text-right">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                Official Tax Invoice
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+                Official Commercial Invoice
               </span>
               <p className="text-base font-black text-white font-mono mt-0.5">{invoiceNum}</p>
               <p className="text-xs text-slate-400">
@@ -73,8 +73,8 @@ export function InvoiceModal({ order, onClose }: InvoiceModalProps) {
               <p className="text-slate-300">Seattle, WA 98101, United States</p>
             </div>
             <div>
-              <p className="font-bold text-slate-400 uppercase text-[10px] mb-1">Payment Details</p>
-              <p className="font-bold text-white">Kafka Saga Authorization</p>
+              <p className="font-bold text-slate-400 uppercase text-[10px] mb-1">Payment & Saga Protocol</p>
+              <p className="font-bold text-white">Kafka KRaft Outbox Authorization</p>
               <p className="text-slate-300">Status: <span className="text-emerald-400 font-bold">{order.status}</span></p>
               <p className="text-slate-300 font-mono text-[11px]">Order #{order.orderId}</p>
             </div>
@@ -129,8 +129,8 @@ export function InvoiceModal({ order, onClose }: InvoiceModalProps) {
                 </span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Shipping & Handling:</span>
-                <span className="font-bold text-emerald-400">FREE (Prime)</span>
+                <span>Shipping (Nexora Express):</span>
+                <span className="font-bold text-emerald-400">FREE ($0.00)</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Estimated Tax (0%):</span>
@@ -138,7 +138,7 @@ export function InvoiceModal({ order, onClose }: InvoiceModalProps) {
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-white/10 text-sm font-black text-white">
                 <span>Grand Total:</span>
-                <span className="text-xl text-amber-400">
+                <span className="text-xl text-cyan-400">
                   {((order.totalCents || 0) / 100).toLocaleString("en-US", {
                     style: "currency",
                     currency: order.currency || "USD",

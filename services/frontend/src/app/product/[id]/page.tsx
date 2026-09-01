@@ -17,15 +17,21 @@ import {
   Tag,
   Check,
   ChevronRight,
+  Bell,
+  Scale,
 } from "lucide-react";
 import { PageWrapper } from "@/components/anime/PageWrapper";
-import { ProductBuyBox } from "@/components/amazon/ProductBuyBox";
-import { FrequentlyBoughtTogether } from "@/components/amazon/FrequentlyBoughtTogether";
-import { ProductReviews } from "@/components/amazon/ProductReviews";
+import { ProductBuyBox } from "@/components/marketplace/ProductBuyBox";
+import { FrequentlyBoughtTogether } from "@/components/marketplace/FrequentlyBoughtTogether";
+import { ProductReviews } from "@/components/marketplace/ProductReviews";
+import { PriceWatcherModal } from "@/components/marketplace/PriceWatcherModal";
+import { ProductCompareModal } from "@/components/marketplace/ProductCompareModal";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const [selectedAngle, setSelectedAngle] = useState(0);
+  const [isPriceWatcherOpen, setIsPriceWatcherOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   const { data: product, isLoading, error } = useQuery<Product>({
     queryKey: ["product", id],
@@ -39,10 +45,20 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
+  const { data: allProducts } = useQuery<Product[]>({
+    queryKey: ["products-all"],
+    queryFn: async () => {
+      const res = await fetch(`/api/gateway/catalog/products?limit=20`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.items || [];
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
         <p className="text-slate-400 text-sm font-semibold">Loading product details from MongoDB...</p>
       </div>
     );
@@ -69,9 +85,9 @@ export default function ProductDetailPage() {
   const angles = ["Front View", "Angled Profile", "Port Details", "In-Box Packaging"];
 
   const specs = product.specs || {
-    "Brand": "EcoPrime Engineering",
-    "Model Number": `EP-${product.id.toUpperCase()}`,
-    "Connectivity": "USB-C, Bluetooth 5.4, Dual Band Wi-Fi",
+    "Brand": "Nexora Engineering Labs",
+    "Model Number": `NX-${product.id.toUpperCase()}`,
+    "Connectivity": "USB4 Thunderbolt, Bluetooth 5.4, Dual Band Wi-Fi 6E",
     "Power Delivery": "100W GaN Fast Charging",
     "Warranty": "2-Year Comprehensive Hardware Warranty",
     "Package Dimensions": "12.4 x 8.6 x 3.2 inches",
@@ -80,20 +96,20 @@ export default function ProductDetailPage() {
 
   return (
     <PageWrapper className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-      {/* Amazon Breadcrumb */}
+      {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
-        <Link href="/" className="hover:text-amber-400 transition-colors">
+        <Link href="/" className="hover:text-cyan-400 transition-colors">
           Home
         </Link>
         <ChevronRight className="h-3 w-3 text-slate-600" />
-        <Link href={`/?category=${primaryCategory.toLowerCase()}`} className="hover:text-amber-400 transition-colors">
+        <Link href={`/?category=${primaryCategory.toLowerCase()}`} className="hover:text-cyan-400 transition-colors">
           {primaryCategory}
         </Link>
         <ChevronRight className="h-3 w-3 text-slate-600" />
         <span className="text-slate-200 font-medium truncate max-w-xs">{product.name}</span>
       </nav>
 
-      {/* Main Product Showcase Grid (3 Columns: Gallery, Details, Buy Box) */}
+      {/* Main Showcase Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-12">
         {/* Left Column: Image Gallery with Angle Selector */}
         <div className="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-4">
@@ -103,13 +119,13 @@ export default function ProductDetailPage() {
               <button
                 key={idx}
                 onClick={() => setSelectedAngle(idx)}
-                className={`p-2.5 rounded-2xl border transition-all shrink-0 text-left ${
+                className={`p-2.5 rounded-2xl border transition-all shrink-0 text-left cursor-pointer ${
                   selectedAngle === idx
-                    ? "border-amber-400 bg-amber-500/10 shadow-md ring-1 ring-amber-400"
+                    ? "border-cyan-400 bg-cyan-500/10 shadow-md ring-1 ring-cyan-400"
                     : "border-white/10 bg-slate-900/60 hover:border-white/20"
                 }`}
               >
-                <div className="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-xl text-amber-400">
+                <div className="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-xl text-cyan-400">
                   <ShoppingBag className="h-6 w-6" />
                 </div>
               </button>
@@ -118,14 +134,14 @@ export default function ProductDetailPage() {
 
           {/* Main Visual Frame */}
           <div className="flex-1 aspect-square glass-panel bg-slate-900/80 rounded-3xl p-10 flex flex-col items-center justify-center relative overflow-hidden border border-white/10 shadow-2xl">
-            <div className="absolute top-4 left-4 z-10 flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 uppercase tracking-wider">
-              #1 Best Seller
+            <div className="absolute top-4 left-4 z-10 flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 uppercase tracking-wider">
+              Featured Choice
             </div>
-            <div className="p-10 rounded-3xl bg-white/5 border border-white/10 shadow-inner relative z-10 group-hover:scale-105 transition-transform duration-500">
-              <ShoppingBag className="h-36 w-36 text-amber-400" />
+            <div className="p-10 rounded-3xl bg-white/5 border border-white/10 shadow-inner relative z-10 hover:scale-105 transition-transform duration-500">
+              <ShoppingBag className="h-36 w-36 text-cyan-400" />
             </div>
             <span className="text-[11px] text-slate-400 mt-4 font-semibold">
-              {angles[selectedAngle]} • High Resolution Preview
+              {angles[selectedAngle]} • Ultra-HD Render
             </span>
           </div>
         </div>
@@ -133,8 +149,8 @@ export default function ProductDetailPage() {
         {/* Center Column: Product Specifications & Details */}
         <div className="lg:col-span-4 flex flex-col justify-between">
           <div>
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-              Brand: EcoPrime Hardware
+            <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">
+              Brand: Nexora Hardware Labs
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-black text-white mt-1 mb-2">
@@ -149,7 +165,7 @@ export default function ProductDetailPage() {
                 ))}
               </div>
               <span className="text-xs font-bold text-amber-400">4.8</span>
-              <span className="text-xs text-slate-400 hover:text-amber-400 transition-colors cursor-pointer">
+              <span className="text-xs text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer">
                 1,248 ratings
               </span>
             </div>
@@ -161,16 +177,16 @@ export default function ProductDetailPage() {
               </p>
               <ul className="space-y-2 list-disc list-inside text-slate-300">
                 <li>{product.description}</li>
-                <li>Engineered with industrial-grade microservices telemetry and zero-latency feedback.</li>
-                <li>Fully compatible with USB-C Power Delivery and multi-region voltage standards.</li>
-                <li>Backed by our 30-day money-back guarantee and 2-year warranty support.</li>
+                <li>Built with real-time Kafka event bus synchronization and sub-8ms transaction latency.</li>
+                <li>Universal USB-C Power Delivery and global adaptive voltage support.</li>
+                <li>Backed by Nexora 30-day return policy and 2-year warranty coverage.</li>
               </ul>
             </div>
 
             {/* Technical Specifications Summary Table */}
             <div className="glass-card rounded-2xl p-4 border border-white/5 text-xs mb-4">
               <p className="font-bold text-white uppercase text-[11px] mb-3">
-                Technical Specifications
+                Core Specifications
               </p>
               <div className="divide-y divide-white/5">
                 {Object.entries(specs).slice(0, 4).map(([key, value]) => (
@@ -184,9 +200,13 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Amazon Buy Box */}
+        {/* Right Column: Nexora Buy Box */}
         <div className="lg:col-span-3">
-          <ProductBuyBox product={product} />
+          <ProductBuyBox
+            product={product}
+            onOpenPriceWatcher={() => setIsPriceWatcherOpen(true)}
+            onOpenComparison={() => setIsCompareOpen(true)}
+          />
         </div>
       </div>
 
@@ -195,9 +215,17 @@ export default function ProductDetailPage() {
 
       {/* Complete Technical Specifications Full Table */}
       <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-xl my-10">
-        <h3 className="text-lg font-bold text-white mb-4 pb-3 border-b border-white/10">
-          Complete Product Specifications
-        </h3>
+        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+          <h3 className="text-lg font-bold text-white">
+            Complete Hardware & Engineering Specifications
+          </h3>
+          <button
+            onClick={() => setIsCompareOpen(true)}
+            className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 cursor-pointer"
+          >
+            <Scale className="h-4 w-4" /> Compare with Competitors
+          </button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-xs">
           {Object.entries(specs).map(([key, val]) => (
             <div key={key} className="flex justify-between py-2 border-b border-white/5">
@@ -210,6 +238,23 @@ export default function ProductDetailPage() {
 
       {/* Customer Reviews Section */}
       <ProductReviews productId={product.id} productName={product.name} />
+
+      {/* Price Watcher Modal */}
+      {isPriceWatcherOpen && (
+        <PriceWatcherModal
+          product={product}
+          onClose={() => setIsPriceWatcherOpen(false)}
+        />
+      )}
+
+      {/* Product Comparison Matrix Modal */}
+      {isCompareOpen && (
+        <ProductCompareModal
+          currentProduct={product}
+          allProducts={allProducts || []}
+          onClose={() => setIsCompareOpen(false)}
+        />
+      )}
     </PageWrapper>
   );
 }

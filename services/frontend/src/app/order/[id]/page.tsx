@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { PageWrapper } from "@/components/anime/PageWrapper";
 import { AnimeButton } from "@/components/anime/AnimeButton";
-import { OrderTrackingStepper } from "@/components/amazon/OrderTrackingStepper";
-import { InvoiceModal } from "@/components/amazon/InvoiceModal";
+import { OrderTrackingStepper } from "@/components/marketplace/OrderTrackingStepper";
+import { InvoiceModal } from "@/components/marketplace/InvoiceModal";
 import { useStore } from "@/providers/StoreContext";
 
 export default function OrderStatusPage() {
@@ -88,7 +88,7 @@ export default function OrderStatusPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
         <p className="text-slate-400 text-sm font-semibold">Retrieving order details from PostgreSQL...</p>
       </div>
     );
@@ -111,7 +111,7 @@ export default function OrderStatusPage() {
   const isPending = order.status === "PENDING_PAYMENT";
   const isPaid = order.status === "PAID";
   const isFailed = order.status === "PAYMENT_FAILED" || order.status === "FAILED" || order.status === "CANCELLED";
-  const trackingNumber = order.trackingNumber || `ECM-${order.orderId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}-US`;
+  const trackingNumber = order.trackingNumber || `NEX-${order.orderId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase()}-US`;
 
   return (
     <PageWrapper className="max-w-4xl mx-auto px-4 md:px-6 py-8">
@@ -119,7 +119,7 @@ export default function OrderStatusPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <Link
           href="/orders"
-          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors gap-1.5"
+          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-cyan-400 transition-colors gap-1.5"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Your Orders
         </Link>
@@ -129,7 +129,7 @@ export default function OrderStatusPage() {
             onClick={() => setIsInvoiceOpen(true)}
             className="px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 transition-colors cursor-pointer"
           >
-            <Printer className="h-3.5 w-3.5 text-amber-400" /> View / Print Invoice
+            <Printer className="h-3.5 w-3.5 text-cyan-400" /> View / Print Commercial Invoice
           </button>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function OrderStatusPage() {
           </div>
           <div>
             <span className="text-[10px] uppercase font-bold text-slate-400">Total Charged</span>
-            <p className="font-black text-amber-400 text-base">
+            <p className="font-black text-cyan-400 text-base">
               {((order.totalCents || 0) / 100).toLocaleString("en-US", {
                 style: "currency",
                 currency: order.currency || "USD",
@@ -176,8 +176,8 @@ export default function OrderStatusPage() {
 
         {/* Kafka Saga Processing Banner */}
         {isPending && (
-          <div className="my-6 p-4 rounded-2xl glass-card border border-amber-500/30 text-xs text-amber-300 flex items-center gap-3">
-            <Radio className="h-5 w-5 animate-pulse text-amber-400 shrink-0" />
+          <div className="my-6 p-4 rounded-2xl glass-card border border-cyan-500/30 text-xs text-cyan-300 flex items-center gap-3">
+            <Radio className="h-5 w-5 animate-pulse text-cyan-400 shrink-0" />
             <div>
               <p className="font-bold">Authorizing Payment via Kafka KRaft</p>
               <p className="text-slate-400 text-[11px] mt-0.5">
@@ -200,7 +200,7 @@ export default function OrderStatusPage() {
                 className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs"
               >
                 <div className="flex items-start gap-3.5">
-                  <div className="p-3 rounded-2xl bg-slate-800 text-amber-400 shrink-0">
+                  <div className="p-3 rounded-2xl bg-slate-800 text-cyan-400 shrink-0">
                     <ShoppingBag className="h-6 w-6" />
                   </div>
                   <div>
@@ -231,7 +231,7 @@ export default function OrderStatusPage() {
                   <button
                     onClick={() => buyAgainMutation.mutate(item.productId)}
                     disabled={buyAgainMutation.isPending}
-                    className="px-3.5 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                    className="px-3.5 py-1.5 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition-all shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     <RotateCcw className="h-3 w-3" /> Buy Again
                   </button>
@@ -245,7 +245,7 @@ export default function OrderStatusPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-4 border-t border-white/5">
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-white mb-2">
-              <MapPin className="h-4 w-4 text-amber-400" /> Shipping Address
+              <MapPin className="h-4 w-4 text-cyan-400" /> Shipping Destination
             </div>
             <p className="font-bold text-slate-200">Alex Johnson</p>
             <p className="text-slate-400">410 Terry Ave N, Suite 400</p>
@@ -254,9 +254,9 @@ export default function OrderStatusPage() {
 
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-white mb-2">
-              <CreditCard className="h-4 w-4 text-cyan-400" /> Payment Method
+              <CreditCard className="h-4 w-4 text-cyan-400" /> Payment & Saga Settlement
             </div>
-            <p className="font-bold text-slate-200">EcoPrime Visa Signature (•••• 4242)</p>
+            <p className="font-bold text-slate-200">Nexora Visa Signature (•••• 4242)</p>
             <p className="text-slate-400">Kafka Outbox Transaction ID: <span className="font-mono text-slate-300">{order.orderId.slice(0, 12)}...</span></p>
             <p className="text-emerald-400 font-bold">Status: {order.status}</p>
           </div>
