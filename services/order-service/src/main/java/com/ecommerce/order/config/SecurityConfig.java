@@ -31,7 +31,7 @@ class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers("/actuator/health", "/health").permitAll()
+                .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info", "/health").permitAll()
                 .requestMatchers("/orders/**").authenticated()
                 .anyRequest().denyAll())
             .oauth2ResourceServer(oauth2 -> oauth2

@@ -58,7 +58,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep UP || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health/readiness | grep UP || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -140,44 +140,47 @@ services:
   # ── Phase 5: Apache Kafka 4.2.1 (KRaft, NO ZooKeeper) ───────────────────
   kafka:
     image: apache/kafka:4.2.1
-    # TRANSITIONAL HOST PORT — direct :9092 access for Phases 5–6 only;
-    # the broker stays network-internal after Phase 7 hardening.
     ports:
       - "9092:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_FLUSH_INTERVAL_MESSAGES: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: 4L62EnnPTjiWhttTvQgahA
     volumes:
-      - kafka-data:/var/lib/kafka/data
+      - kafka-data:/tmp/kraft-combined-logs
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list || exit 1"]
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 20s
 
-  # Provision order.created + payment.completed (3 partitions, RF=1) — contract
-  # mandates fixed partitions/RF and NO auto-create (docs/kafka-topics.md).
+  # One-shot post-boot topic provisioning. Idempotent: --if-not-exists on every create.
   kafka-init:
     image: apache/kafka:4.2.1
-    restart: "no"
     depends_on:
       kafka:
         condition: service_healthy
-    command: >
-      sh -c "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic order.created --partitions 3 --replication-factor 1 && /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic payment.completed --partitions 3 --replication-factor 1"
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        echo "Creating Kafka topics with 3 partitions each..."
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic order.created --partitions 3 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic payment.completed --partitions 3 --replication-factor 1
+        echo "Kafka topics created:"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+    restart: "no"
     healthcheck:
       test: ["CMD-SHELL", "exit 0"]
       interval: 10s
@@ -205,7 +208,7 @@ services:
 
   # Read-only topic/consumer-group observability for the ORDR-08 kill test.
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: provectuslabs/kafka-ui:v0.7.2
     ports:
       - "8088:8080"
     environment:
@@ -241,7 +244,7 @@ services:
       cart-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep UP || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health/readiness | grep UP || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -275,7 +278,7 @@ services:
 
   # ── Phase 6: Mailpit (SMTP mock) ────────────────────────────────────────
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:v1.23.0
     ports:
       - "8025:8025"
       - "1025:1025"
@@ -295,13 +298,14 @@ services:
       KAFKA_BROKERS: kafka:9092
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"
+      PORT: "8084"
     depends_on:
       kafka-init:
         condition: service_completed_successfully
       mailpit:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "ps -ef | grep '[n]ode src/index.js' || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/health | grep UP || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -330,7 +334,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep UP || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health/readiness | grep UP || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -344,6 +348,7 @@ services:
     mem_limit: 512m
     environment:
       NODE_ENV: production
+      API_GATEWAY_URL: http://api-gateway:8080
     depends_on:
       api-gateway:
         condition: service_healthy

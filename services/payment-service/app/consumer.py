@@ -2,8 +2,9 @@
 
 Consumes order.created, runs the mock authorization controlled by PAYMENT_MODE,
 and produces payment.completed. Redelivery safety (ORDR-03 / ORDR-08) comes from
-a Redis SETNX dedup: `payment:authorized:{orderId}` is set atomically before
-authorization, so a redelivered order.created never re-authorizes the mock.
+a Redis dedup key: `payment:authorized:{orderId}` is checked on entry and set
+with a 1-hour TTL immediately after producing `payment.completed`, so a crash
+mid-flight causes a safe redelivery rather than a permanently stuck order.
 """
 from __future__ import annotations
 

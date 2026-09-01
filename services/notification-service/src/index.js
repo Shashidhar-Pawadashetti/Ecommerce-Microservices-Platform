@@ -1,5 +1,6 @@
 const { Kafka } = require('kafkajs');
 const nodemailer = require('nodemailer');
+const http = require('http');
 const { sendOrderConfirmed, sendPaymentFailed } = require('./email');
 
 const kafka = new Kafka({
@@ -8,6 +9,23 @@ const kafka = new Kafka({
 });
 
 const consumer = kafka.consumer({ groupId: 'notification-service' });
+
+let isKafkaConnected = false;
+
+consumer.on(consumer.events.CONNECT, () => {
+  isKafkaConnected = true;
+  console.log('Kafka consumer connected.');
+});
+
+consumer.on(consumer.events.DISCONNECT, () => {
+  isKafkaConnected = false;
+  console.log('Kafka consumer disconnected.');
+});
+
+consumer.on(consumer.events.CRASH, () => {
+  isKafkaConnected = false;
+  console.log('Kafka consumer crashed.');
+});
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'localhost',
@@ -22,6 +40,7 @@ const orderEmails = new Map();
 
 async function start() {
   await consumer.connect();
+  isKafkaConnected = true;
   console.log('Connected to Kafka.');
 
   await consumer.subscribe({ topic: 'order.created', fromBeginning: true });
@@ -70,9 +89,32 @@ async function start() {
 
 start().catch(console.error);
 
+// HTTP Health Check Endpoint for Kubernetes & Docker Compose probes
+const server = http.createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/healthz') {
+    if (isKafkaConnected) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'UP', service: 'notification-service', kafka: 'CONNECTED' }));
+    } else {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'DOWN', service: 'notification-service', kafka: 'DISCONNECTED' }));
+    }
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
+});
+
+const PORT = parseInt(process.env.PORT || '8084', 10);
+server.listen(PORT, () => {
+  console.log(`Notification health probe listening on port ${PORT}`);
+});
+
 // Graceful shutdown
 const shutdown = async () => {
-  console.log('Shutting down consumer...');
+  console.log('Shutting down consumer and health server...');
+  isKafkaConnected = false;
+  server.close();
   await consumer.disconnect();
   process.exit(0);
 };

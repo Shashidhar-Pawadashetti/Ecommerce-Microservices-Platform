@@ -51,7 +51,7 @@ class SecurityConfig {
                 // stay denied below.
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 // exactly three public matchers, then deny-by-default
-                .requestMatchers("/auth/signup", "/auth/login", "/actuator/health").permitAll()
+                .requestMatchers("/auth/signup", "/auth/login", "/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/auth/**").authenticated()
                 .anyRequest().denyAll())
             // jwt(withDefaults()) pulls this plan's JwtDecoder bean into the

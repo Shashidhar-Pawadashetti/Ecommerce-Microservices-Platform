@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const apiGatewayUrl = process.env.API_GATEWAY_URL || "http://api-gateway:8080";
     
     // Forward to the API Gateway's authentication endpoint
-    const response = await fetch("http://api-gateway:8080/auth/login", {
+    const response = await fetch(`${apiGatewayUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

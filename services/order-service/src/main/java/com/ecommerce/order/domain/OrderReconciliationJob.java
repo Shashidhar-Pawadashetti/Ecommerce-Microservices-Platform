@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -20,10 +21,15 @@ public class OrderReconciliationJob {
         this.orderRepository = orderRepository;
     }
 
+    /**
+     * Reconciles stuck PENDING_PAYMENT orders using atomic row locking (FOR UPDATE SKIP LOCKED)
+     * within a single transaction to prevent race conditions across multiple Kubernetes replicas.
+     */
+    @Transactional
     @Scheduled(fixedRateString = "60000")
     public void sweepAbandonedOrders() {
         Instant threshold = Instant.now().minus(5, ChronoUnit.MINUTES);
-        List<Order> stuckOrders = orderRepository.findByStatusAndCreatedAtBefore(OrderStatus.PENDING_PAYMENT, threshold);
+        List<Order> stuckOrders = orderRepository.findStuckOrdersForReconciliation(OrderStatus.PENDING_PAYMENT.name(), threshold);
         
         if (stuckOrders.isEmpty()) {
             return;

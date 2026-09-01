@@ -1,5 +1,6 @@
 .opencode
 .agents
+.gsd
 
 # ── Secrets hygiene: never commit real env files; .env.example is the tracked template ──
 .env

@@ -14,6 +14,7 @@ COPY src ./src
 
 # Set Node environment to production
 ENV NODE_ENV=production
+EXPOSE 8084
 
 # Run as non-root user (node user is pre-created in the alpine image)
 USER node
