@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Search,
   ShoppingCart,
@@ -16,16 +16,10 @@ import {
   Sparkles,
   Zap,
   Flame,
-  Radio,
   Clock,
-  ShieldCheck,
-  CheckCircle2,
-  Gift,
-  Compass,
-  Activity,
-  SlidersHorizontal,
+  LogOut,
 } from "lucide-react";
-import { Cart } from "@/types";
+import { Cart, User as UserType } from "@/types";
 import { useStore } from "@/providers/StoreContext";
 
 const DEPARTMENTS = [
@@ -39,7 +33,8 @@ const DEPARTMENTS = [
 export function MarketplaceNavbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { location, setLocation, searchCategory, setSearchCategory, userProfile } = useStore();
+  const queryClient = useQueryClient();
+  const { location, setLocation, searchCategory, setSearchCategory, userProfile, setUserProfile } = useStore();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedDept, setSelectedDept] = useState(searchParams.get("category") || searchCategory || "");
@@ -52,6 +47,19 @@ export function MarketplaceNavbar() {
   const [tempZip, setTempZip] = useState(location.zipCode);
 
   const accountRef = useRef<HTMLDivElement>(null);
+
+  // Query authenticated user profile
+  const { data: authUser } = useQuery<UserType | null>({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const res = await fetch("/api/gateway/auth/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    retry: false,
+  });
+
+  const isLoggedIn = !!authUser;
 
   // Fetch Cart for Live Badge Count
   const { data: cart } = useQuery<Cart>({
@@ -100,6 +108,11 @@ export function MarketplaceNavbar() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    setUserProfile(null);
+    queryClient.setQueryData(["auth-user"], null);
+    queryClient.setQueryData(["cart"], null);
+    queryClient.invalidateQueries();
+    setIsAccountOpen(false);
     router.push("/login");
     router.refresh();
   };
@@ -170,7 +183,7 @@ export function MarketplaceNavbar() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="px-2 text-slate-400 hover:text-white"
+                className="px-2 text-slate-400 hover:text-white cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -195,11 +208,17 @@ export function MarketplaceNavbar() {
               className="flex items-center gap-1.5 p-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition-all text-left cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-slate-950 font-bold text-xs shadow-md">
-                {userProfile?.fullName ? userProfile.fullName[0].toUpperCase() : <User className="h-4 w-4" />}
+                {isLoggedIn && userProfile?.fullName ? (
+                  userProfile.fullName[0].toUpperCase()
+                ) : (
+                  <User className="h-4 w-4" />
+                )}
               </div>
               <div className="hidden lg:flex flex-col">
                 <span className="text-[10px] text-slate-400 leading-none">
-                  Hello, {userProfile?.fullName ? userProfile.fullName.split(" ")[0] : "Shopper"}
+                  {isLoggedIn
+                    ? `Hello, ${userProfile?.fullName ? userProfile.fullName.split(" ")[0] : (authUser?.email?.split("@")[0] || "Shopper")}`
+                    : "Hello, Sign in"}
                 </span>
                 <span className="text-xs font-bold text-white flex items-center gap-0.5 leading-tight">
                   Account & Lists <ChevronDown className="h-3 w-3" />
@@ -210,57 +229,96 @@ export function MarketplaceNavbar() {
             {/* Account Flyout Card */}
             {isAccountOpen && (
               <div className="absolute right-0 mt-2 w-64 glass-panel bg-slate-900 border border-white/10 rounded-2xl p-4 shadow-2xl z-50 text-xs animate-in fade-in zoom-in-95">
-                <div className="pb-3 border-b border-white/10">
-                  <div className="flex items-center justify-between">
-                    <p className="font-bold text-white text-sm truncate max-w-[170px]">
-                      {userProfile?.fullName || "Your Nexora Account"}
-                    </p>
-                    {userProfile?.accountType && (
-                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                        {userProfile.accountType}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-slate-400 text-[11px] truncate">
-                    {userProfile?.email || "Authenticated JWT Session"}
-                  </p>
-                </div>
+                {isLoggedIn ? (
+                  // ── LOGGED IN FLYOUT ──
+                  <>
+                    <div className="pb-3 border-b border-white/10">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-white text-sm truncate max-w-[170px]">
+                          {userProfile?.fullName || "Your Nexora Account"}
+                        </p>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          Active Session
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] truncate">
+                        {userProfile?.email || authUser?.email || "Authenticated JWT Session"}
+                      </p>
+                    </div>
 
-                <div className="py-2 space-y-1">
-                  <Link
-                    href="/orders"
-                    onClick={() => setIsAccountOpen(false)}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
-                  >
-                    <Package className="h-4 w-4 text-cyan-400" />
-                    <span>Your Orders & Shipments</span>
-                  </Link>
-                  <Link
-                    href="/cart"
-                    onClick={() => setIsAccountOpen(false)}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
-                  >
-                    <ShoppingCart className="h-4 w-4 text-emerald-400" />
-                    <span>Saved for Later & Cart</span>
-                  </Link>
-                  <Link
-                    href="/login"
-                    onClick={() => setIsAccountOpen(false)}
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
-                  >
-                    <User className="h-4 w-4 text-indigo-400" />
-                    <span>Switch Account</span>
-                  </Link>
-                </div>
+                    <div className="py-2 space-y-1">
+                      <Link
+                        href="/orders"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
+                      >
+                        <Package className="h-4 w-4 text-cyan-400" />
+                        <span>Your Orders & Shipments</span>
+                      </Link>
+                      <Link
+                        href="/cart"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
+                      >
+                        <ShoppingCart className="h-4 w-4 text-emerald-400" />
+                        <span>Saved for Later & Cart</span>
+                      </Link>
+                    </div>
 
-                <div className="pt-2 border-t border-white/10">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left p-2 rounded-xl hover:bg-rose-500/10 text-rose-400 font-bold transition-colors cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
-                </div>
+                    {/* ONLY SHOW SIGN OUT WHEN LOGGED IN */}
+                    <div className="pt-2 border-t border-white/10">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-rose-500/10 text-rose-400 font-bold transition-colors cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  // ── NOT LOGGED IN FLYOUT ──
+                  <>
+                    <div className="pb-3 border-b border-white/10 text-center">
+                      <Link
+                        href="/login"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="block w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-bold text-xs text-center shadow-lg transition-all"
+                      >
+                        Sign in to your account
+                      </Link>
+                      <p className="text-[11px] text-slate-400 mt-2">
+                        New customer?{" "}
+                        <Link
+                          href="/signup"
+                          onClick={() => setIsAccountOpen(false)}
+                          className="text-cyan-400 font-bold underline hover:text-cyan-300"
+                        >
+                          Start here.
+                        </Link>
+                      </p>
+                    </div>
+
+                    <div className="py-2 space-y-1">
+                      <Link
+                        href="/orders"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
+                      >
+                        <Package className="h-4 w-4 text-cyan-400" />
+                        <span>Your Orders & Shipments</span>
+                      </Link>
+                      <Link
+                        href="/cart"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
+                      >
+                        <ShoppingCart className="h-4 w-4 text-emerald-400" />
+                        <span>Saved for Later & Cart</span>
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -293,7 +351,7 @@ export function MarketplaceNavbar() {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 md:hidden rounded-xl border border-white/10 text-slate-300 hover:text-white"
+            className="p-2 md:hidden rounded-xl border border-white/10 text-slate-300 hover:text-white cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -360,7 +418,7 @@ export function MarketplaceNavbar() {
               </div>
               <button
                 onClick={() => setIsLocationModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
+                className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -403,13 +461,13 @@ export function MarketplaceNavbar() {
                 <button
                   type="button"
                   onClick={() => setIsLocationModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-full bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition-colors"
+                  className="flex-1 py-2.5 rounded-full bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 font-bold text-xs hover:brightness-110 transition-all shadow-md shadow-cyan-500/20"
+                  className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 font-bold text-xs hover:brightness-110 transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
                 >
                   Apply Destination
                 </button>
