@@ -1,20 +1,27 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Search, Loader2 } from "lucide-react";
-
+import { Search, Loader2, Sparkles, Filter, PackageOpen } from "lucide-react";
 import { LandingPage } from "@/components/LandingPage";
 import { ProductCard } from "@/components/ProductCard";
+import { AnimeStagger } from "@/components/anime/AnimeStagger";
+import { AnimeText } from "@/components/anime/AnimeText";
 import { Product } from "@/types";
+
+const CATEGORIES = [
+  { id: "", label: "All Items" },
+  { id: "electronics", label: "⚡ Electronics" },
+  { id: "clothing", label: "👕 Apparel" },
+  { id: "books", label: "📚 Books" },
+  { id: "accessories", label: "🎧 Accessories" },
+];
 
 function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "");
 
@@ -23,7 +30,7 @@ function HomeContent() {
     const params = new URLSearchParams();
     if (searchTerm) params.set("q", searchTerm);
     if (category) params.set("category", category);
-    
+
     const newUrl = params.toString() ? `/?${params.toString()}` : "/";
     router.replace(newUrl, { scroll: false });
   }, [searchTerm, category, router]);
@@ -34,137 +41,118 @@ function HomeContent() {
       const params = new URLSearchParams();
       if (searchTerm) params.append("q", searchTerm);
       if (category) params.append("category", category);
-      
+
       const res = await fetch(`/api/gateway/catalog/products?${params.toString()}`);
       if (!res.ok) {
-        throw new Error("Failed to fetch products");
+        throw new Error("Failed to fetch products from Catalog Service");
       }
       const data = await res.json();
       return data.items || [];
     },
   });
 
-  const isFilterActive = searchTerm.length > 0 || category.length > 0;
-  const showLandingPage = !isLoading && products?.length === 0 && !isFilterActive;
-
-  if (showLandingPage) {
-    return <LandingPage />;
-  }
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
-
   return (
-    <div className="container mx-auto px-4 md:px-6 py-8 min-h-[calc(100vh-4rem)]">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight lg:text-4xl">Catalog</h1>
-          <p className="text-neutral-500 dark:text-neutral-400 mt-1">Find the best products for your needs.</p>
-        </div>
+    <div className="w-full flex flex-col min-h-screen">
+      {/* ── HERO LANDING PAGE SECTION ── */}
+      <LandingPage />
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full sm:w-64 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-            />
-          </div>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer"
-          >
-            <option value="">All Categories</option>
-            <option value="electronics">Electronics</option>
-            <option value="clothing">Clothing</option>
-            <option value="books">Books</option>
-          </select>
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.div 
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center h-64 gap-4"
-          >
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <p className="text-neutral-500">Loading catalog...</p>
-          </motion.div>
-        ) : error ? (
-          <motion.div 
-            key="error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-2xl text-center border border-red-100 dark:border-red-900/30"
-          >
-            <p className="font-semibold text-lg mb-1">Oops! Something went wrong.</p>
-            <p className="text-sm">{(error as Error).message}</p>
-          </motion.div>
-        ) : products?.length === 0 ? (
-          <motion.div 
-            key="empty"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex flex-col items-center justify-center h-64 text-center p-8 bg-neutral-50 dark:bg-neutral-900 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-800"
-          >
-            <div className="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-full mb-4">
-              <Search className="h-8 w-8 text-neutral-400" />
+      {/* ── LIVE CATALOG SECTION ── */}
+      <section id="catalog-section" className="w-full max-w-7xl mx-auto px-4 md:px-6 py-16">
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-3">
+              <Sparkles className="h-3.5 w-3.5" /> Curated Marketplace
             </div>
-            <h2 className="text-xl font-bold mb-2">No products found</h2>
-            <p className="text-neutral-500 max-w-md mx-auto">
-              We couldn't find anything matching "{searchTerm}" {category ? `in ${category}` : ''}. 
-              Try adjusting your search filters.
+            <h2 className="text-3xl sm:text-4xl font-black text-white">
+              Explore Our <AnimeText text="Live Products" gradient="neon" delay={150} />
+            </h2>
+            <p className="text-slate-400 text-sm mt-1 max-w-md">
+              Real-time inventory synced with MongoDB 8.0 and instant Redis cart reservation.
             </p>
-          </motion.div>
+          </div>
+
+          {/* Search & Category Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            {/* Search Input */}
+            <div className="relative group w-full sm:w-72">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-cyan-400 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2.5 w-full rounded-2xl border border-white/10 bg-slate-900/80 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 transition-all text-sm shadow-inner"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Category Pill Filters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                category === cat.id
+                  ? "bg-gradient-to-r from-indigo-600 to-pink-600 text-white shadow-lg shadow-indigo-500/25 border-transparent scale-105"
+                  : "bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-white/5 hover:border-white/20"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Product Grid Content */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-64 gap-4 glass-panel rounded-3xl p-8">
+            <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
+            <p className="text-slate-400 text-sm font-semibold">
+              Querying FastAPI Catalog Service...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="glass-panel border border-rose-500/30 bg-rose-950/20 text-rose-300 p-8 rounded-3xl text-center">
+            <p className="font-bold text-lg mb-1">Unable to load catalog products</p>
+            <p className="text-xs text-rose-400">{(error as Error).message}</p>
+          </div>
+        ) : products?.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center p-8 glass-panel rounded-3xl border border-dashed border-slate-800">
+            <div className="p-4 rounded-full bg-slate-800/80 mb-3 text-slate-400">
+              <PackageOpen className="h-8 w-8" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-1">No products found</h3>
+            <p className="text-xs text-slate-400 max-w-sm">
+              No matching products for &quot;{searchTerm}&quot; {category ? `in ${category}` : ""}. Try resetting filters.
+            </p>
+          </div>
         ) : (
-          <motion.div 
-            key="grid"
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
+          <AnimeStagger
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            delay={100}
+            staggerDelay={60}
           >
             {products?.map((product) => (
-              <motion.div key={product.id} variants={itemVariants}>
-                <ProductCard product={product} />
-              </motion.div>
+              <ProductCard key={product.id} product={product} />
             ))}
-          </motion.div>
+          </AnimeStagger>
         )}
-      </AnimatePresence>
+      </section>
     </div>
   );
 }
 
 export default function Home() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        </div>
+      }
+    >
       <HomeContent />
     </Suspense>
   );

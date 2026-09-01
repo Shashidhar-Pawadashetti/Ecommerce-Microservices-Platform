@@ -6,6 +6,7 @@ export interface Product {
   currency: string;
   stock: number;
   categories: string[];
+  category?: string;
 }
 
 export interface CartItem {

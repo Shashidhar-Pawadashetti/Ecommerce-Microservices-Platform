@@ -5,7 +5,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { OrderSnapshot } from "@/types";
-import { ArrowLeft, CheckCircle2, Clock, XCircle, Loader2, Package } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, XCircle, Loader2, Package, Radio, Sparkles } from "lucide-react";
+import { PageWrapper } from "@/components/anime/PageWrapper";
+import { AnimeButton } from "@/components/anime/AnimeButton";
 
 export default function OrderStatusPage() {
   const { id } = useParams();
@@ -21,7 +23,7 @@ export default function OrderStatusPage() {
       return res.json();
     },
     enabled: !!id,
-    refetchInterval: shouldPoll ? 2000 : false, // Poll every 2 seconds until terminal state
+    refetchInterval: shouldPoll ? 2000 : false,
   });
 
   // Stop polling once the order reaches a terminal state (PAID or PAYMENT_FAILED)
@@ -40,35 +42,21 @@ export default function OrderStatusPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        <p className="text-neutral-500">Loading order details...</p>
+        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
+        <p className="text-slate-400 text-sm font-semibold">Retrieving order details from PostgreSQL...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !order) {
     return (
       <div className="container mx-auto p-8 max-w-md text-center min-h-[60vh] flex flex-col items-center justify-center">
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-2xl border border-red-100 dark:border-red-900/30 mb-6">
-          <p className="font-semibold text-lg mb-1">Error Loading Order</p>
-          <p className="text-sm">{(error as Error).message}</p>
+        <div className="glass-panel border border-rose-500/30 bg-rose-950/20 text-rose-300 p-8 rounded-3xl mb-6">
+          <p className="font-bold text-lg mb-1">Error Loading Order</p>
+          <p className="text-xs text-rose-400">{(error as Error)?.message || "Order not found"}</p>
         </div>
-        <Link
-          href="/"
-          className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-medium hover:bg-blue-700 transition"
-        >
-          Return to Catalog
-        </Link>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="container mx-auto p-8 max-w-md text-center min-h-[60vh] flex flex-col items-center justify-center">
-        <p className="text-neutral-500 mb-6">Order not found.</p>
-        <Link href="/" className="text-blue-600 hover:underline">
-          Return to Catalog
+        <Link href="/">
+          <AnimeButton variant="secondary">Return to Catalog</AnimeButton>
         </Link>
       </div>
     );
@@ -79,49 +67,55 @@ export default function OrderStatusPage() {
   const isFailed = order.status === "PAYMENT_FAILED" || order.status === "FAILED" || order.status === "CANCELLED";
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-8 max-w-2xl min-h-[calc(100vh-4rem)]">
+    <PageWrapper
+      title="Order Details"
+      badge={`Status: ${order.status}`}
+      description="Live order lifecycle tracking powered by Kafka KRaft event stream."
+      className="max-w-2xl mx-auto px-4 md:px-6 py-8"
+    >
       <Link
         href="/orders"
-        className="inline-flex items-center text-sm text-neutral-500 hover:text-blue-600 mb-6 transition-colors"
+        className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-cyan-400 mb-6 transition-colors gap-1.5"
       >
-        <ArrowLeft className="h-4 w-4 mr-1" /> View All Orders
+        <ArrowLeft className="h-3.5 w-3.5" /> View All Orders
       </Link>
 
-      <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-6 md:p-8">
-        <div className="text-center pb-6 border-b border-neutral-100 dark:border-neutral-800">
+      <div className="glass-panel rounded-3xl border border-white/[0.08] shadow-2xl p-6 sm:p-8">
+        {/* Status Header */}
+        <div className="text-center pb-6 border-b border-white/5">
           <div className="flex justify-center mb-4">
             {isPaid ? (
-              <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full text-green-600 dark:text-green-400">
+              <div className="p-4 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/20">
                 <CheckCircle2 className="h-12 w-12" />
               </div>
             ) : isPending ? (
-              <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-full text-yellow-600 dark:text-yellow-400 animate-pulse">
+              <div className="p-4 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/20 animate-pulse">
                 <Clock className="h-12 w-12" />
               </div>
             ) : (
-              <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-full text-red-600 dark:text-red-400">
+              <div className="p-4 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-lg shadow-rose-500/20">
                 <XCircle className="h-12 w-12" />
               </div>
             )}
           </div>
 
-          <h1 className="text-2xl font-extrabold tracking-tight mb-1">
+          <h2 className="text-2xl font-black text-white mb-1">
             {isPaid
-              ? "Payment Successful!"
+              ? "Payment Approved & Settled!"
               : isPending
-              ? "Processing Payment..."
+              ? "Authorizing Payment..."
               : "Payment Failed"}
-          </h1>
-          <p className="text-sm text-neutral-500">Order ID: {order.orderId}</p>
+          </h2>
+          <p className="text-xs font-mono text-slate-400">ID: {order.orderId}</p>
 
           <div className="mt-3">
             <span
-              className={`inline-block px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${
+              className={`inline-block px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border ${
                 isPaid
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-sm shadow-emerald-500/20"
                   : isPending
-                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                  ? "bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-sm shadow-amber-500/20 animate-pulse"
+                  : "bg-rose-500/10 text-rose-400 border-rose-500/30"
               }`}
             >
               {order.status}
@@ -129,13 +123,14 @@ export default function OrderStatusPage() {
           </div>
         </div>
 
+        {/* Kafka Processing Notice */}
         {isPending && (
-          <div className="my-6 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 text-sm text-blue-900 dark:text-blue-300 flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin flex-shrink-0 text-blue-600" />
+          <div className="my-6 p-4 rounded-2xl glass-card border border-amber-500/30 text-xs text-amber-300 flex items-center gap-3">
+            <Radio className="h-5 w-5 animate-pulse text-amber-400 shrink-0" />
             <div>
-              <p className="font-semibold">Simulating transaction via Kafka</p>
-              <p className="text-xs text-blue-800/80 dark:text-blue-400/80">
-                The payment service is currently processing this order. This page updates automatically.
+              <p className="font-bold">Kafka Payment Saga In Progress</p>
+              <p className="text-slate-400 text-[11px] mt-0.5">
+                The FastAPI payment worker is processing authorization via Kafka KRaft. This view auto-refreshes.
               </p>
             </div>
           </div>
@@ -144,19 +139,19 @@ export default function OrderStatusPage() {
         {/* Ordered items snapshot */}
         {order.items && order.items.length > 0 && (
           <div className="my-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 mb-3 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
               <Package className="h-4 w-4" /> Purchased Items
             </h3>
-            <div className="divide-y divide-neutral-100 dark:divide-neutral-800 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl p-4 border border-neutral-100 dark:border-neutral-800">
+            <div className="divide-y divide-white/5 glass-card rounded-2xl p-4 border border-white/5">
               {order.items.map((item, idx) => (
-                <div key={idx} className="py-2.5 first:pt-0 last:pb-0 flex justify-between items-center text-sm">
+                <div key={idx} className="py-2.5 first:pt-0 last:pb-0 flex justify-between items-center text-xs">
                   <div>
-                    <span className="font-medium text-neutral-900 dark:text-white">
+                    <span className="font-bold text-white">
                       {item.nameSnapshot || item.name || `Product #${item.productId}`}
                     </span>
-                    <span className="text-neutral-500 ml-2">× {item.quantity}</span>
+                    <span className="text-slate-400 ml-2">× {item.quantity}</span>
                   </div>
-                  <span className="font-semibold text-neutral-900 dark:text-white">
+                  <span className="font-bold text-slate-200">
                     {(((item.unitPriceCents || 0) * (item.quantity || 1)) / 100).toLocaleString("en-US", {
                       style: "currency",
                       currency: order.currency || "USD",
@@ -169,16 +164,16 @@ export default function OrderStatusPage() {
         )}
 
         {/* Summary Details */}
-        <div className="space-y-3 py-4 border-t border-neutral-100 dark:border-neutral-800 text-sm">
+        <div className="space-y-3 py-4 border-t border-white/5 text-xs">
           <div className="flex justify-between">
-            <span className="text-neutral-500">Order Placed</span>
-            <span className="font-medium text-neutral-900 dark:text-white">
+            <span className="text-slate-400">Order Timestamp</span>
+            <span className="font-bold text-white">
               {new Date(order.createdAt).toLocaleString()}
             </span>
           </div>
-          <div className="flex justify-between items-center text-base font-extrabold pt-2 border-t border-neutral-100 dark:border-neutral-800">
-            <span>Total Paid</span>
-            <span className="text-blue-600 dark:text-blue-400 text-xl">
+          <div className="flex justify-between items-center text-sm font-bold pt-3 border-t border-white/5">
+            <span className="text-slate-300">Total Charged</span>
+            <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-indigo-200 to-pink-300">
               {((order.totalCents || 0) / 100).toLocaleString("en-US", {
                 style: "currency",
                 currency: order.currency || "USD",
@@ -187,21 +182,20 @@ export default function OrderStatusPage() {
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 px-6 py-2.5 text-sm font-semibold hover:opacity-90 transition-all text-center"
-          >
-            Continue Shopping
+          <Link href="/">
+            <AnimeButton variant="primary" className="w-full sm:w-auto">
+              Continue Shopping
+            </AnimeButton>
           </Link>
-          <Link
-            href="/orders"
-            className="inline-flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 px-6 py-2.5 text-sm font-semibold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all text-center"
-          >
-            All Orders
+          <Link href="/orders">
+            <AnimeButton variant="secondary" className="w-full sm:w-auto">
+              View All Orders
+            </AnimeButton>
           </Link>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

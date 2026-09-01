@@ -1,91 +1,187 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
-import { ArrowRight, ShoppingBag, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
+import {
+  ArrowRight,
+  ShoppingBag,
+  ShieldCheck,
+  Zap,
+  Radio,
+  Server,
+  Sparkles,
+  Lock,
+  Layers,
+  CheckCircle2,
+} from "lucide-react";
+import { AnimeText } from "@/components/anime/AnimeText";
+import { AnimeCounter } from "@/components/anime/AnimeCounter";
+import { AnimeStagger } from "@/components/anime/AnimeStagger";
+import { AnimeButton } from "@/components/anime/AnimeButton";
+import { AnimeArchitectureVisualizer } from "@/components/anime/AnimeArchitectureVisualizer";
 
 export function LandingPage() {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 300, damping: 24 },
-    },
-  };
-
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-neutral-50 dark:bg-neutral-950 relative">
-      {/* Background gradients */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    <div className="relative min-h-screen flex flex-col items-center overflow-hidden">
+      {/* ── HERO SECTION ── */}
+      <section className="relative z-10 w-full max-w-6xl mx-auto px-4 md:px-6 pt-16 md:pt-24 pb-16 flex flex-col items-center text-center">
+        {/* Animated Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-indigo-500/30 text-xs sm:text-sm font-semibold text-indigo-300 mb-8 shadow-lg shadow-indigo-500/10">
+          <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+          <span>⚡ High-Performance Polyglot Architecture</span>
+        </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="z-10 container mx-auto px-4 md:px-6 flex flex-col items-center text-center max-w-4xl"
-      >
-        <motion.div variants={itemVariants} className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 mb-8 shadow-sm">
-          <span className="flex h-2 w-2 rounded-full bg-blue-600 mr-2 animate-pulse"></span>
-          Platform v2.0 is Live
-        </motion.div>
-        
-        <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-extrabold tracking-tight text-neutral-900 dark:text-white mb-6">
-          The future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Ecommerce</span> is here.
-        </motion.h1>
-        
-        <motion.p variants={itemVariants} className="text-lg md:text-xl text-neutral-600 dark:text-neutral-300 mb-10 max-w-2xl leading-relaxed">
-          Experience lightning-fast performance, rock-solid security, and a seamless shopping experience powered by microservices architecture.
-        </motion.p>
-        
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-20 w-full sm:w-auto">
-          <Link href="/login" className="inline-flex justify-center items-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-base font-medium text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all active:scale-95">
-            Start Shopping <ArrowRight className="h-5 w-5" />
+        {/* Dynamic Title with Anime.js text reveal */}
+        <div className="max-w-4xl mb-6">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] text-white">
+            Next-Gen Commerce, <br />
+            <AnimeText text="Powered by Microservices" gradient="neon" delay={200} />
+          </h1>
+        </div>
+
+        <p className="text-base sm:text-xl text-slate-300 max-w-2xl leading-relaxed mb-10">
+          Experience ultra-responsive shopping powered by Spring Boot, FastAPI, Node.js, and Apache Kafka KRaft with transactional outbox sagas and in-memory Redis carts.
+        </p>
+
+        {/* CTA Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-16">
+          <Link href="/signup">
+            <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto shadow-indigo-600/30">
+              Create Account <ArrowRight className="h-5 w-5" />
+            </AnimeButton>
           </Link>
-          <Link href="/" className="inline-flex justify-center items-center gap-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-8 py-4 text-base font-medium text-neutral-900 dark:text-white shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all active:scale-95">
-            Explore Catalog
+          <Link href="/">
+            <AnimeButton size="lg" variant="secondary" className="w-full sm:w-auto">
+              Browse Catalog
+            </AnimeButton>
           </Link>
-        </motion.div>
+        </div>
 
-        <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-          <motion.div variants={itemVariants} className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm border border-neutral-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-shadow">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl mb-4 text-blue-600 dark:text-blue-400">
-              <Zap className="h-8 w-8" />
+        {/* Live Metrics Counter Bar */}
+        <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 glass-panel rounded-3xl p-6 border border-slate-700/50 shadow-2xl mb-20">
+          <div className="flex flex-col items-center p-3 border-r border-slate-800 last:border-0">
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-cyan-400">
+              <AnimeCounter target={7} duration={1500} />
+              <span className="text-cyan-400 ml-0.5">+</span>
             </div>
-            <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
-            <p className="text-neutral-600 dark:text-neutral-400">Optimized microservices ensure instant loading times and real-time updates.</p>
-          </motion.div>
-          
-          <motion.div variants={itemVariants} className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm border border-neutral-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-shadow">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl mb-4 text-purple-600 dark:text-purple-400">
-              <ShieldCheck className="h-8 w-8" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">Secure & Reliable</h3>
-            <p className="text-neutral-600 dark:text-neutral-400">Bank-grade security protocols keep your data and transactions safe.</p>
-          </motion.div>
+            <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
+              Microservices
+            </span>
+          </div>
 
-          <motion.div variants={itemVariants} className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm border border-neutral-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-shadow">
-            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl mb-4 text-emerald-600 dark:text-emerald-400">
-              <ShoppingBag className="h-8 w-8" />
+          <div className="flex flex-col items-center p-3 border-r border-slate-800 last:border-0">
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-purple-400">
+              <AnimeCounter target={99.9} decimals={1} suffix="%" duration={2000} />
             </div>
-            <h3 className="text-xl font-bold mb-2">Vast Selection</h3>
-            <p className="text-neutral-600 dark:text-neutral-400">Thousands of products curated just for you. Find exactly what you need.</p>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+            <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
+              Saga Reliability
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center p-3 border-r border-slate-800 last:border-0">
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-emerald-400">
+              <span className="text-emerald-400 mr-0.5">&lt;</span>
+              <AnimeCounter target={8} suffix="ms" duration={1800} />
+            </div>
+            <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
+              Event Latency
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center p-3">
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-pink-400">
+              <AnimeCounter target={100} suffix="%" duration={1600} />
+            </div>
+            <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
+              KRaft Event Driven
+            </span>
+          </div>
+        </div>
+
+        {/* ── INTERACTIVE ARCHITECTURE VISUALIZER ── */}
+        <div className="w-full mb-24">
+          <AnimeArchitectureVisualizer />
+        </div>
+
+        {/* ── CORE CAPABILITIES ── */}
+        <div className="w-full mb-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
+              Engineered for Extreme Scalability
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+              Every component is decoupled, containerized, and independently deployable.
+            </p>
+          </div>
+
+          <AnimeStagger className="grid grid-cols-1 md:grid-cols-3 gap-6" delay={150}>
+            <div className="anime-stagger-item glass-card p-8 rounded-3xl border border-slate-800 flex flex-col text-left">
+              <div className="p-3.5 rounded-2xl bg-indigo-500/20 text-indigo-400 w-fit mb-5">
+                <Zap className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Transactional Outbox</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                Guaranteed at-least-once message delivery via PostgreSQL outbox tables, preventing distributed transaction inconsistency.
+              </p>
+              <div className="mt-auto flex items-center gap-2 text-xs font-semibold text-indigo-400">
+                <CheckCircle2 className="h-4 w-4" /> Spring Boot + Hibernate
+              </div>
+            </div>
+
+            <div className="anime-stagger-item glass-card p-8 rounded-3xl border border-slate-800 flex flex-col text-left">
+              <div className="p-3.5 rounded-2xl bg-purple-500/20 text-purple-400 w-fit mb-5">
+                <Radio className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Kafka Event Saga</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                Asynchronous choreography between Order Service, FastAPI Payment Service, and Notification Workers with Redis SETNX idempotency.
+              </p>
+              <div className="mt-auto flex items-center gap-2 text-xs font-semibold text-purple-400">
+                <CheckCircle2 className="h-4 w-4" /> Apache Kafka KRaft 4.2
+              </div>
+            </div>
+
+            <div className="anime-stagger-item glass-card p-8 rounded-3xl border border-slate-800 flex flex-col text-left">
+              <div className="p-3.5 rounded-2xl bg-emerald-500/20 text-emerald-400 w-fit mb-5">
+                <Lock className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Stateless JWT Security</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                Spring Cloud Gateway verifies HS256 tokens and enforces Redis-backed rate limiting while routing transparently to microservices.
+              </p>
+              <div className="mt-auto flex items-center gap-2 text-xs font-semibold text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" /> OAuth2 Resource Server
+              </div>
+            </div>
+          </AnimeStagger>
+        </div>
+
+        {/* ── CALL TO ACTION BANNER ── */}
+        <div className="w-full glass-panel rounded-3xl p-8 sm:p-12 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-slate-900/80 shadow-2xl relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 right-1/4 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <Sparkles className="h-10 w-10 text-amber-400 mb-4 animate-bounce" />
+          <h2 className="text-3xl sm:text-5xl font-black text-white mb-4">
+            Ready to experience the platform?
+          </h2>
+          <p className="text-slate-300 text-sm sm:text-base max-w-lg mb-8">
+            Create an account or start exploring the catalog immediately.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <Link href="/signup">
+              <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto">
+                Get Started Now <ArrowRight className="h-4 w-4" />
+              </AnimeButton>
+            </Link>
+            <Link href="/">
+              <AnimeButton size="lg" variant="secondary" className="w-full sm:w-auto">
+                Explore Catalog
+              </AnimeButton>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
