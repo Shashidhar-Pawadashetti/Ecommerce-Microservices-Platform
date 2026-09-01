@@ -15,39 +15,12 @@ import {
   Eye,
   EyeOff,
   CheckCircle2,
-  XCircle,
   ShieldCheck,
-  Building,
-  Briefcase,
-  Cpu,
   MapPin,
   Gift,
-  Check,
 } from "lucide-react";
 import { AnimeButton } from "@/components/anime/AnimeButton";
-import { AnimeText } from "@/components/anime/AnimeText";
 import { useStore } from "@/providers/StoreContext";
-
-const ACCOUNT_TIERS = [
-  {
-    id: "personal",
-    title: "Personal Buyer",
-    desc: "Everyday retail, Prime express delivery & personal deals",
-    icon: User,
-  },
-  {
-    id: "business",
-    title: "Business & Enterprise",
-    desc: "Tax-exempt commercial invoicing & bulk order discounts",
-    icon: Building,
-  },
-  {
-    id: "developer",
-    title: "Developer / Pro",
-    desc: "Kafka event telemetry access & API sandbox credentials",
-    icon: Cpu,
-  },
-];
 
 const REGIONAL_HUBS = [
   { id: "seattle", city: "Seattle", zipCode: "98101", label: "Seattle, WA (US-West Main Hub)" },
@@ -68,7 +41,6 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [accountTier, setAccountTier] = useState("personal");
   const [selectedHub, setSelectedHub] = useState("seattle");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
@@ -78,7 +50,7 @@ export default function SignupPage() {
 
   // Live password strength calculation
   const passwordStrength = useMemo(() => {
-    if (!password) return { score: 0, label: "", color: "bg-slate-700" };
+    if (!password) return { score: 0, label: "", color: "bg-slate-700", text: "text-slate-500" };
     let score = 0;
     if (password.length >= 8) score += 1;
     if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 1;
@@ -170,7 +142,6 @@ export default function SignupPage() {
         fullName: fullName || "Nexora Shopper",
         email,
         phoneNumber: phoneNumber || undefined,
-        accountType: accountTier,
         preferredRegion: chosenHub.label,
       });
 
@@ -195,11 +166,11 @@ export default function SignupPage() {
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-12">
-      <div className="relative z-10 w-full max-w-xl p-8 sm:p-10 glass-panel bg-slate-900/90 rounded-3xl shadow-2xl border border-white/[0.08]">
+      <div className="relative z-10 w-full max-w-lg p-8 sm:p-10 glass-panel bg-slate-900/95 rounded-3xl shadow-2xl border border-white/[0.08]">
         {/* Brand header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-3 group">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-pink-500 shadow-lg shadow-cyan-500/20">
+            <div className="p-2 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-pink-500 shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
               <Package className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-black text-white tracking-tight">
@@ -207,11 +178,16 @@ export default function SignupPage() {
             </span>
           </Link>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1.5">
-            Create Your <AnimeText text="Nexora Account" gradient="neon" delay={100} />
+          {/* Highly Visible Title */}
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
+            Create Your{" "}
+            <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-pink-400 bg-clip-text text-transparent">
+              Nexora Account
+            </span>
           </h1>
+
           <p className="text-xs text-slate-400">
-            Join the next-generation microservices commerce ecosystem
+            Join the next-generation microservices cloud commerce platform
           </p>
         </div>
 
@@ -221,47 +197,9 @@ export default function SignupPage() {
           </div>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-6">
-          {/* ── 1. ACCOUNT TIER SELECTOR ── */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Select Account Tier
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {ACCOUNT_TIERS.map((tier) => {
-                const Icon = tier.icon;
-                const isSelected = accountTier === tier.id;
-                return (
-                  <button
-                    type="button"
-                    key={tier.id}
-                    onClick={() => setAccountTier(tier.id)}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                      isSelected
-                        ? "bg-cyan-500/10 border-cyan-400 shadow-md ring-1 ring-cyan-400 text-white"
-                        : "bg-slate-800/60 border-white/5 text-slate-400 hover:border-white/20 hover:text-slate-200"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <Icon className={`h-4 w-4 ${isSelected ? "text-cyan-400" : "text-slate-400"}`} />
-                      {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400" />}
-                    </div>
-                    <div>
-                      <p className="font-bold text-xs leading-tight">{tier.title}</p>
-                      <p className="text-[10px] text-slate-500 mt-1 leading-tight">{tier.desc}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── 2. PERSONAL DETAILS ── */}
+        <form onSubmit={handleSignup} className="space-y-5">
+          {/* ── PERSONAL DETAILS ── */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1 border-b border-white/5">
-              Personal Information
-            </h3>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1">
@@ -275,7 +213,7 @@ export default function SignupPage() {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none"
+                    className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none font-medium"
                     placeholder="Alex Johnson"
                     required
                   />
@@ -284,7 +222,7 @@ export default function SignupPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1">
-                  Phone Number (For SMS Delivery Alerts)
+                  Phone Number (SMS Alerts)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -294,7 +232,7 @@ export default function SignupPage() {
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none"
+                    className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none font-medium"
                     placeholder="+1 (555) 382-9104"
                   />
                 </div>
@@ -313,7 +251,7 @@ export default function SignupPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none"
+                  className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none font-medium"
                   placeholder="shopper@domain.com"
                   required
                 />
@@ -321,7 +259,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* ── 3. REGIONAL FULFILLMENT HUB ── */}
+          {/* ── REGIONAL LOGISTICS HUB ── */}
           <div>
             <label className="block text-xs font-bold text-slate-400 mb-1.5 ml-1">
               Preferred Regional Logistics Hub
@@ -333,7 +271,7 @@ export default function SignupPage() {
               <select
                 value={selectedHub}
                 onChange={(e) => setSelectedHub(e.target.value)}
-                className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none cursor-pointer"
+                className="block w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none cursor-pointer font-medium"
               >
                 {REGIONAL_HUBS.map((hub) => (
                   <option key={hub.id} value={hub.id} className="bg-slate-900 text-white">
@@ -344,12 +282,8 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* ── 4. SECURITY & PASSWORDS ── */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1 border-b border-white/5">
-              Security & Credentials
-            </h3>
-
+          {/* ── SECURITY & PASSWORD ── */}
+          <div className="space-y-4 pt-1">
             {/* Password */}
             <div>
               <div className="flex justify-between items-center mb-1.5 ml-1">
@@ -371,14 +305,14 @@ export default function SignupPage() {
                   value={password}
                   minLength={8}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none"
+                  className="block w-full pl-10 pr-10 py-2.5 bg-slate-800/90 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 focus:border-cyan-400 transition-all text-xs outline-none font-medium"
                   placeholder="Min 8 chars, 1 number, 1 symbol"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -451,7 +385,7 @@ export default function SignupPage() {
                   value={confirmPassword}
                   minLength={8}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`block w-full pl-10 pr-10 py-2.5 bg-slate-800/90 border rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 transition-all text-xs outline-none ${
+                  className={`block w-full pl-10 pr-10 py-2.5 bg-slate-800/90 border rounded-2xl text-white placeholder-slate-500 focus:ring-2 focus:ring-cyan-400/40 transition-all text-xs outline-none font-medium ${
                     confirmPassword && !passwordsMatch
                       ? "border-amber-500/50"
                       : "border-white/10 focus:border-cyan-400"
@@ -462,7 +396,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer"
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -470,9 +404,8 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* ── 5. PERKS & AGREEMENTS ── */}
+          {/* ── PERKS & AGREEMENTS ── */}
           <div className="space-y-3 pt-2">
-            {/* Promo opt-in */}
             <label className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -488,7 +421,6 @@ export default function SignupPage() {
               </span>
             </label>
 
-            {/* Terms of Service */}
             <label className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
               <input
                 type="checkbox"
