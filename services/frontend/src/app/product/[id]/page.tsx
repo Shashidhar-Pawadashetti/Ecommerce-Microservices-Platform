@@ -1,20 +1,31 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { Product } from "@/types";
-import { ArrowLeft, ShoppingCart, Loader2, Sparkles, Tag, ShieldCheck, Zap } from "lucide-react";
+import {
+  ArrowLeft,
+  ShoppingBag,
+  Star,
+  ShieldCheck,
+  Zap,
+  Truck,
+  RotateCcw,
+  Loader2,
+  Tag,
+  Check,
+  ChevronRight,
+} from "lucide-react";
 import { PageWrapper } from "@/components/anime/PageWrapper";
-import { AnimeButton } from "@/components/anime/AnimeButton";
+import { ProductBuyBox } from "@/components/amazon/ProductBuyBox";
+import { FrequentlyBoughtTogether } from "@/components/amazon/FrequentlyBoughtTogether";
+import { ProductReviews } from "@/components/amazon/ProductReviews";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [quantity, setQuantity] = useState(1);
-  const [cartError, setCartError] = useState("");
+  const [selectedAngle, setSelectedAngle] = useState(0);
 
   const { data: product, isLoading, error } = useQuery<Product>({
     queryKey: ["product", id],
@@ -28,43 +39,11 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
-  const addToCartMutation = useMutation({
-    mutationFn: async () => {
-      setCartError("");
-      const res = await fetch(`/api/gateway/cart/items`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: id,
-          quantity,
-        }),
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          throw new Error("Please log in to add items to your cart.");
-        }
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "Failed to add item to cart");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      router.push("/cart");
-    },
-    onError: (err: any) => {
-      setCartError(err.message || "An error occurred");
-    },
-  });
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
-        <p className="text-slate-400 text-sm font-semibold">Loading product details...</p>
+        <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
+        <p className="text-slate-400 text-sm font-semibold">Loading product details from MongoDB...</p>
       </div>
     );
   }
@@ -76,124 +55,161 @@ export default function ProductDetailPage() {
           <p className="font-bold text-lg mb-1">Product Not Found</p>
           <p className="text-xs text-rose-400">{(error as Error)?.message || "Requested item unavailable"}</p>
         </div>
-        <Link href="/">
-          <AnimeButton variant="secondary">
-            <ArrowLeft className="h-4 w-4" /> Return to Catalog
-          </AnimeButton>
+        <Link
+          href="/"
+          className="px-6 py-2.5 rounded-full bg-slate-800 text-white font-bold text-xs hover:bg-slate-700"
+        >
+          Return to Catalog
         </Link>
       </div>
     );
   }
 
+  const primaryCategory = product.categories?.[0] || product.category || "Electronics";
+  const angles = ["Front View", "Angled Profile", "Port Details", "In-Box Packaging"];
+
+  const specs = product.specs || {
+    "Brand": "EcoPrime Engineering",
+    "Model Number": `EP-${product.id.toUpperCase()}`,
+    "Connectivity": "USB-C, Bluetooth 5.4, Dual Band Wi-Fi",
+    "Power Delivery": "100W GaN Fast Charging",
+    "Warranty": "2-Year Comprehensive Hardware Warranty",
+    "Package Dimensions": "12.4 x 8.6 x 3.2 inches",
+    "Item Weight": "2.45 lbs",
+  };
+
   return (
-    <PageWrapper className="max-w-5xl mx-auto px-4 md:px-6 py-8">
-      <Link
-        href="/"
-        className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-cyan-400 mb-8 transition-colors gap-1.5"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to Catalog
-      </Link>
+    <PageWrapper className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      {/* Amazon Breadcrumb */}
+      <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+        <Link href="/" className="hover:text-amber-400 transition-colors">
+          Home
+        </Link>
+        <ChevronRight className="h-3 w-3 text-slate-600" />
+        <Link href={`/?category=${primaryCategory.toLowerCase()}`} className="hover:text-amber-400 transition-colors">
+          {primaryCategory}
+        </Link>
+        <ChevronRight className="h-3 w-3 text-slate-600" />
+        <span className="text-slate-200 font-medium truncate max-w-xs">{product.name}</span>
+      </nav>
 
-      <div className="flex flex-col md:flex-row gap-10 glass-panel rounded-3xl p-6 md:p-10 border border-white/[0.08] shadow-2xl">
-        {/* Product Visual Showcase */}
-        <div className="w-full md:w-1/2 aspect-square bg-gradient-to-br from-slate-800/80 via-slate-900/90 to-indigo-950/40 rounded-3xl flex flex-col items-center justify-center p-10 relative overflow-hidden border border-white/5">
-          <div className="absolute -top-12 -left-12 w-48 h-48 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-pink-500/20 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="p-8 rounded-3xl bg-white/5 border border-white/10 shadow-2xl relative z-10">
-            <ShoppingCart className="h-28 w-28 text-indigo-400" />
+      {/* Main Product Showcase Grid (3 Columns: Gallery, Details, Buy Box) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-12">
+        {/* Left Column: Image Gallery with Angle Selector */}
+        <div className="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-4">
+          {/* Thumbnails */}
+          <div className="flex sm:flex-col gap-2.5 overflow-x-auto">
+            {angles.map((angle, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedAngle(idx)}
+                className={`p-2.5 rounded-2xl border transition-all shrink-0 text-left ${
+                  selectedAngle === idx
+                    ? "border-amber-400 bg-amber-500/10 shadow-md ring-1 ring-amber-400"
+                    : "border-white/10 bg-slate-900/60 hover:border-white/20"
+                }`}
+              >
+                <div className="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-xl text-amber-400">
+                  <ShoppingBag className="h-6 w-6" />
+                </div>
+              </button>
+            ))}
           </div>
 
-          <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-slate-400">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" /> Fast & Verified Delivery
+          {/* Main Visual Frame */}
+          <div className="flex-1 aspect-square glass-panel bg-slate-900/80 rounded-3xl p-10 flex flex-col items-center justify-center relative overflow-hidden border border-white/10 shadow-2xl">
+            <div className="absolute top-4 left-4 z-10 flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 uppercase tracking-wider">
+              #1 Best Seller
+            </div>
+            <div className="p-10 rounded-3xl bg-white/5 border border-white/10 shadow-inner relative z-10 group-hover:scale-105 transition-transform duration-500">
+              <ShoppingBag className="h-36 w-36 text-amber-400" />
+            </div>
+            <span className="text-[11px] text-slate-400 mt-4 font-semibold">
+              {angles[selectedAngle]} • High Resolution Preview
+            </span>
           </div>
         </div>
 
-        {/* Product Info & Cart Controls */}
-        <div className="w-full md:w-1/2 flex flex-col justify-between">
+        {/* Center Column: Product Specifications & Details */}
+        <div className="lg:col-span-4 flex flex-col justify-between">
           <div>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {product.categories?.map((cat) => (
-                <span
-                  key={cat}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full uppercase tracking-wider"
-                >
-                  <Tag className="h-3 w-3" />
-                  {cat}
-                </span>
-              ))}
-            </div>
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+              Brand: EcoPrime Hardware
+            </span>
 
-            <h1 className="text-2xl sm:text-4xl font-black text-white mb-3">
+            <h1 className="text-2xl sm:text-3xl font-black text-white mt-1 mb-2">
               {product.name}
             </h1>
 
-            <p className="text-slate-300 text-sm leading-relaxed mb-6">
-              {product.description || "High performance microservices product item."}
-            </p>
-
-            <div className="mb-6 p-4 rounded-2xl glass-card border border-white/5 flex items-center justify-between">
-              <span className="text-xs uppercase font-bold tracking-wider text-slate-400">
-                Unit Price
-              </span>
-              <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-indigo-300">
-                {((product.priceCents || 0) / 100).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: product.currency || "USD",
-                })}
-              </span>
-            </div>
-          </div>
-
-          <div>
-            {cartError && (
-              <div className="bg-rose-950/40 border border-rose-500/40 text-rose-300 p-3.5 rounded-2xl text-xs font-semibold mb-4">
-                {cartError}
+            {/* Star Rating & Reviews link */}
+            <div className="flex items-center gap-2 pb-4 mb-4 border-b border-white/10">
+              <div className="flex text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-amber-400" />
+                ))}
               </div>
-            )}
-
-            <div className="flex items-center gap-4 mb-6">
-              <label htmlFor="quantity" className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Quantity:
-              </label>
-              <div className="flex items-center border border-white/10 rounded-full bg-slate-900/80 px-4 py-2">
-                <input
-                  type="number"
-                  id="quantity"
-                  min="1"
-                  max={product.stock || 99}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-12 bg-transparent text-center font-bold text-white focus:outline-none text-sm"
-                />
-              </div>
-              <span className="text-xs font-semibold text-slate-400">
-                {product.stock > 0 ? `${product.stock} available` : "Out of stock"}
+              <span className="text-xs font-bold text-amber-400">4.8</span>
+              <span className="text-xs text-slate-400 hover:text-amber-400 transition-colors cursor-pointer">
+                1,248 ratings
               </span>
             </div>
 
-            <AnimeButton
-              onClick={() => addToCartMutation.mutate()}
-              disabled={addToCartMutation.isPending || product.stock === 0}
-              variant="primary"
-              size="lg"
-              className="w-full"
-            >
-              {addToCartMutation.isPending ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" /> Adding to Cart...
-                </>
-              ) : product.stock === 0 ? (
-                "Out of Stock"
-              ) : (
-                <>
-                  <ShoppingCart className="h-5 w-5" /> Add to Cart
-                </>
-              )}
-            </AnimeButton>
+            {/* Highlights bullet points */}
+            <div className="space-y-2 mb-6 text-xs text-slate-300">
+              <p className="font-bold text-white uppercase tracking-wider text-[11px] mb-2">
+                About this item
+              </p>
+              <ul className="space-y-2 list-disc list-inside text-slate-300">
+                <li>{product.description}</li>
+                <li>Engineered with industrial-grade microservices telemetry and zero-latency feedback.</li>
+                <li>Fully compatible with USB-C Power Delivery and multi-region voltage standards.</li>
+                <li>Backed by our 30-day money-back guarantee and 2-year warranty support.</li>
+              </ul>
+            </div>
+
+            {/* Technical Specifications Summary Table */}
+            <div className="glass-card rounded-2xl p-4 border border-white/5 text-xs mb-4">
+              <p className="font-bold text-white uppercase text-[11px] mb-3">
+                Technical Specifications
+              </p>
+              <div className="divide-y divide-white/5">
+                {Object.entries(specs).slice(0, 4).map(([key, value]) => (
+                  <div key={key} className="py-1.5 flex justify-between">
+                    <span className="text-slate-400">{key}:</span>
+                    <span className="font-semibold text-slate-200">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Right Column: Amazon Buy Box */}
+        <div className="lg:col-span-3">
+          <ProductBuyBox product={product} />
+        </div>
       </div>
+
+      {/* Frequently Bought Together Bundle */}
+      <FrequentlyBoughtTogether mainProduct={product} />
+
+      {/* Complete Technical Specifications Full Table */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-xl my-10">
+        <h3 className="text-lg font-bold text-white mb-4 pb-3 border-b border-white/10">
+          Complete Product Specifications
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-xs">
+          {Object.entries(specs).map(([key, val]) => (
+            <div key={key} className="flex justify-between py-2 border-b border-white/5">
+              <span className="text-slate-400 font-medium">{key}</span>
+              <span className="text-slate-200 font-bold">{val}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Customer Reviews Section */}
+      <ProductReviews productId={product.id} productName={product.name} />
     </PageWrapper>
   );
 }

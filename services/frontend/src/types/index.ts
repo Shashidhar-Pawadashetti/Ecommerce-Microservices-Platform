@@ -7,6 +7,12 @@ export interface Product {
   stock: number;
   categories: string[];
   category?: string;
+  rating?: number;
+  reviewCount?: number;
+  isBestSeller?: boolean;
+  isAmazonChoice?: boolean;
+  dealPercentage?: number;
+  specs?: Record<string, string>;
 }
 
 export interface CartItem {
@@ -15,6 +21,7 @@ export interface CartItem {
   quantity: number;
   unitPriceCents: number;
   lineTotalCents: number;
+  imageUrl?: string;
 }
 
 export interface Cart {
@@ -54,10 +61,53 @@ export interface OrderSnapshot {
   totalCents: number;
   currency: string;
   createdAt: string;
+  shippingAddress?: ShippingAddress;
+  deliveryOption?: string;
+  trackingNumber?: string;
 }
 
 export interface User {
   id: string;
   email: string;
   name?: string;
+}
+
+export interface Review {
+  id: string;
+  author: string;
+  rating: number;
+  title: string;
+  comment: string;
+  date: string;
+  verifiedPurchase: boolean;
+  helpfulCount: number;
+}
+
+export interface ShippingAddress {
+  fullName: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phoneNumber: string;
+  country?: string;
+}
+
+export interface DeliveryOption {
+  id: string;
+  title: string;
+  description: string;
+  priceCents: number;
+  estimatedDate: string;
+}
+
+export interface ToastMessage {
+  id: string;
+  title: string;
+  productName: string;
+  priceCents: number;
+  quantity: number;
+  cartTotalCents: number;
+  currency: string;
 }
