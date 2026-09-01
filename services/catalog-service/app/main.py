@@ -32,6 +32,12 @@ async def lifespan(app: FastAPI):
     await db.connect()
     await db.ensure_indexes()
     try:
+        from scripts.seed import run_seed
+        await run_seed()
+    except Exception as e:
+        import logging
+        logging.getLogger("catalog-service").warning("Auto-seed failed: %s", e)
+    try:
         yield
     finally:
         await db.close()
