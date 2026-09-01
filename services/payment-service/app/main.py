@@ -66,6 +66,11 @@ app = FastAPI(
 )
 
 
+@app.get("/health", operation_id="health")
+async def health() -> Response:
+    return Response(content='{"status":"ok"}', media_type="application/json")
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> Response:
     detail = exc.detail

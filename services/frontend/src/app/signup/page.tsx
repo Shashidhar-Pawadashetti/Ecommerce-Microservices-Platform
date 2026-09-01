@@ -26,7 +26,7 @@ export default function SignupPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!signupRes.ok) {
@@ -37,8 +37,8 @@ export default function SignupPage() {
         try {
           const errorData = await signupRes.json();
           throw new Error(errorData.message || "Failed to create account");
-        } catch(e) {
-          throw new Error("Failed to create account");
+        } catch(e: any) {
+          throw new Error(e?.message || "Failed to create account");
         }
       }
 
@@ -98,23 +98,6 @@ export default function SignupPage() {
 
         <form onSubmit={handleSignup} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 ml-1">Full Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-neutral-400" />
-              </div>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                placeholder="John Doe"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 ml-1">Email Address</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -132,7 +115,10 @@ export default function SignupPage() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5 ml-1">Password</label>
+            <div className="flex justify-between items-center mb-1.5 ml-1">
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">Password</label>
+              <span className="text-xs text-neutral-400">Min 8 characters</span>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-neutral-400" />
@@ -140,6 +126,7 @@ export default function SignupPage() {
               <input
                 type="password"
                 value={password}
+                minLength={8}
                 onChange={(e) => setPassword(e.target.value)}
                 className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
                 placeholder="••••••••"

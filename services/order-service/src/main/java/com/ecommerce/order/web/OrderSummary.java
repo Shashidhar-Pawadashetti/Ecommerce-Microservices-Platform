@@ -12,6 +12,7 @@ public record OrderSummary(
         String orderId,
         OrderStatus status,
         int totalCents,
+        String currency,
         Instant createdAt
 ) {
     public static OrderSummary from(Order order) {
@@ -19,6 +20,7 @@ public record OrderSummary(
                 order.getOrderId(),
                 order.getStatus(),
                 order.getTotalCents(),
+                order.getCurrency(),
                 order.getCreatedAt());
     }
 }

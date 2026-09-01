@@ -1,9 +1,26 @@
-FROM node:24-alpine
+# ── Frontend Next.js Production Multi-Stage Standalone Build ──
+FROM node:24-alpine AS builder
+
 WORKDIR /app
 COPY package*.json ./
-# Run npm install with dns 8.8.8.8 hack only if needed, but normally docker build has internet.
-# Since we have DNS issues during npm install in alpine, let's just do it directly.
-RUN npm install
+RUN npm ci
+
 COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM node:24-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+
+CMD ["node", "server.js"]

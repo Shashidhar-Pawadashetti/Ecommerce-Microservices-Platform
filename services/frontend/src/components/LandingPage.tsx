@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { ArrowRight, ShoppingBag, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 
 export function LandingPage() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -16,7 +16,7 @@ export function LandingPage() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -55,8 +55,8 @@ export function LandingPage() {
           <Link href="/login" className="inline-flex justify-center items-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-base font-medium text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all active:scale-95">
             Start Shopping <ArrowRight className="h-5 w-5" />
           </Link>
-          <Link href="/about" className="inline-flex justify-center items-center gap-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-8 py-4 text-base font-medium text-neutral-900 dark:text-white shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all active:scale-95">
-            Learn More
+          <Link href="/" className="inline-flex justify-center items-center gap-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-8 py-4 text-base font-medium text-neutral-900 dark:text-white shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all active:scale-95">
+            Explore Catalog
           </Link>
         </motion.div>
 

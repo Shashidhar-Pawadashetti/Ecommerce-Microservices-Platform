@@ -1,10 +1,11 @@
-# Dev overrides — auto-loaded by `docker compose up`.
-# Base service definition (ports, healthcheck, mem_limit) lives in docker-compose.yml.
-services:
-  frontend:
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - ./services/frontend:/app
-      - /app/node_modules
-      - /app/.next
+# docker-compose.override.yml
+# Optional dev overrides (disabled by default for production microservices stack).
+# To enable local hot-reload development on frontend, uncomment below:
+# services:
+#   frontend:
+#     environment:
+#       - NODE_ENV=development
+#     volumes:
+#       - ./services/frontend:/app
+#       - /app/node_modules
+#       - /app/.next
