@@ -23,6 +23,7 @@ import {
 import { PageWrapper } from "@/components/anime/PageWrapper";
 import { AnimeButton } from "@/components/anime/AnimeButton";
 import { useStore } from "@/providers/StoreContext";
+import { generateUUID } from "@/lib/uuid";
 
 const DELIVERY_OPTIONS: DeliveryOption[] = [
   {
@@ -109,7 +110,7 @@ export default function CheckoutPage() {
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      const idempotencyKey = crypto.randomUUID();
+      const idempotencyKey = generateUUID();
 
       const res = await fetch(`/api/gateway/orders`, {
         method: "POST",

@@ -21,3 +21,5 @@ build/
 
 # ── Regenerated research cache ──
 .planning/research/.cache/
+
+deployment/
