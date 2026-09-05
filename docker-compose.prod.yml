@@ -1,0 +1,56 @@
+# Production overlay — points every service that's normally built locally at
+# its pinned ECR image instead.
+#
+# Note: this intentionally does NOT try to remove the `build:` key from the
+# base file via `!reset` — that YAML merge tag has known reliability issues
+# across some Compose versions/merge scenarios. It's also unnecessary: Compose
+# only attempts a build when the image isn't already present locally *and*
+# `--build` is explicitly passed. Since the deploy flow always runs `pull`
+# before `up -d` (and never passes `--build`), the already-pulled image is
+# used directly and the `build:` context path in the base file — which won't
+# even exist on the production host — is simply never touched.
+#
+# Usage on the EC2 instance (a source checkout is NOT required — only this
+# file, the base docker-compose.yml, and .env need to be present):
+#
+#   export ECR_REGISTRY=<account-id>.dkr.ecr.<region>.amazonaws.com
+#   export IMAGE_TAG=<git-sha>
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build
+#
+# ECR_REGISTRY and IMAGE_TAG are read from the environment (or .env) — the
+# CI/CD pipeline sets IMAGE_TAG to the commit SHA on every deploy so what's
+# running is always traceable to an exact commit, never a moving "latest".
+
+services:
+  auth-service:
+    image: ${ECR_REGISTRY}/ecommerce/auth-service:${IMAGE_TAG}
+    pull_policy: always
+
+  catalog-service:
+    image: ${ECR_REGISTRY}/ecommerce/catalog-service:${IMAGE_TAG}
+    pull_policy: always
+
+  cart-service:
+    image: ${ECR_REGISTRY}/ecommerce/cart-service:${IMAGE_TAG}
+    pull_policy: always
+
+  order-service:
+    image: ${ECR_REGISTRY}/ecommerce/order-service:${IMAGE_TAG}
+    pull_policy: always
+
+  payment-service:
+    image: ${ECR_REGISTRY}/ecommerce/payment-service:${IMAGE_TAG}
+    pull_policy: always
+
+  notification-service:
+    image: ${ECR_REGISTRY}/ecommerce/notification-service:${IMAGE_TAG}
+    pull_policy: always
+
+  api-gateway:
+    image: ${ECR_REGISTRY}/ecommerce/api-gateway:${IMAGE_TAG}
+    pull_policy: always
+
+  frontend:
+    image: ${ECR_REGISTRY}/ecommerce/frontend:${IMAGE_TAG}
+    pull_policy: always
