@@ -1,110 +1,136 @@
 name: Build, Push, Deploy
 
 on:
-    push:
-        branches: [main]
+  push:
+    branches:
+      - main
 
 permissions:
-    id-token: write # required for OIDC -> AWS
-    contents: read
+  id-token: write
+  contents: read
 
 env:
-    AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
 
 jobs:
-    build-and-push:
-        runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                service:
-                    - auth-service
-                    - catalog-service
-                    - cart-service
-                    - order-service
-                    - payment-service
-                    - notification-service
-                    - api-gateway
-                    - frontend
-        steps:
-            - uses: actions/checkout@v4
 
-            - name: Configure AWS credentials (OIDC — no long-lived keys)
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                  aws-region: ${{ env.AWS_REGION }}
+  build-and-push:
+    name: Build and Push ${{ matrix.service }}
+    runs-on: ubuntu-latest
 
-            - name: Login to ECR
-              id: ecr-login
-              uses: aws-actions/amazon-ecr-login@v2
+    strategy:
+      fail-fast: true
+      matrix:
+        service:
+          - auth-service
+          - catalog-service
+          - cart-service
+          - order-service
+          - payment-service
+          - notification-service
+          - api-gateway
+          - frontend
 
-            - name: Build and push ${{ matrix.service }}
-              env:
-                  REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-                  REPO: ecommerce/${{ matrix.service }}
-                  TAG: ${{ github.sha }}
-              run: |
-                  docker build \
-                    -t "$REGISTRY/$REPO:$TAG" \
-                    -t "$REGISTRY/$REPO:latest" \
-                    ./services/${{ matrix.service }}
-                  docker push "$REGISTRY/$REPO:$TAG"
-                  docker push "$REGISTRY/$REPO:latest"
+    steps:
 
-    deploy:
-        needs: build-and-push
-        runs-on: ubuntu-latest
-        steps:
-            - name: Configure AWS credentials (OIDC — no long-lived keys)
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                  aws-region: ${{ env.AWS_REGION }}
+      - name: Checkout
+        uses: actions/checkout@v5
 
-            - name: Deploy via SSM (no SSH, no open port 22 needed)
-              env:
-                  INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
-                  ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-                  IMAGE_TAG: ${{ github.sha }}
-              run: |
-                  COMMAND_ID=$(aws ssm send-command \
-                    --instance-ids "$INSTANCE_ID" \
-                    --document-name "AWS-RunShellScript" \
-                    --comment "Deploy $IMAGE_TAG" \
-                    --parameters commands="[
-                      \"cd /home/ubuntu/ecommerce-deploy\",
-                      \"aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY\",
-                      \"export ECR_REGISTRY=$ECR_REGISTRY\",
-                      \"export IMAGE_TAG=$IMAGE_TAG\",
-                      \"docker compose -f docker-compose.yml -f docker-compose.prod.yml pull\",
-                      \"docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build\",
-                      \"docker image prune -f\"
-                    ]" \
-                    --query "Command.CommandId" \
-                    --output text)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
 
-                  echo "SSM command sent: $COMMAND_ID"
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
 
-                  # Poll until the command finishes, then fail the job if it didn't succeed
-                  aws ssm wait command-executed \
-                    --command-id "$COMMAND_ID" \
-                    --instance-id "$INSTANCE_ID" || true
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          REPOSITORY: ecommerce/${{ matrix.service }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" \
+            "./services/${{ matrix.service }}"
 
-                  STATUS=$(aws ssm get-command-invocation \
-                    --command-id "$COMMAND_ID" \
-                    --instance-id "$INSTANCE_ID" \
-                    --query "Status" --output text)
+          docker push \
+            "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
 
-                  aws ssm get-command-invocation \
-                    --command-id "$COMMAND_ID" \
-                    --instance-id "$INSTANCE_ID" \
-                    --query "StandardOutputContent" --output text
+  deploy:
+    name: Deploy to EC2 via SSM
+    runs-on: ubuntu-latest
+    needs: build-and-push
 
-                  if [ "$STATUS" != "Success" ]; then
-                    echo "Deploy failed with status: $STATUS"
-                    aws ssm get-command-invocation \
-                      --command-id "$COMMAND_ID" \
-                      --instance-id "$INSTANCE_ID" \
-                      --query "StandardErrorContent" --output text
-                    exit 1
-                  fi
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+
+      - name: Deploy via SSM
+        env:
+          INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --region "$AWS_REGION" \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy $IMAGE_TAG" \
+            --parameters commands="[
+              \"set -e\",
+              \"cd /home/ubuntu/ecommerce-deploy\",
+              \"export ECR_REGISTRY=$ECR_REGISTRY\",
+              \"export IMAGE_TAG=$IMAGE_TAG\",
+              \"aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY\",
+              \"docker compose -f docker-compose.yml -f docker-compose.prod.yml pull\",
+              \"docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build\",
+              \"docker image prune -af\"
+            ]" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM command: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --region "$AWS_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
+
+          STATUS=$(aws ssm get-command-invocation \
+            --region "$AWS_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query "Status" \
+            --output text)
+
+          echo "Deployment status: $STATUS"
+
+          echo "----- STDOUT -----"
+          aws ssm get-command-invocation \
+            --region "$AWS_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query "StandardOutputContent" \
+            --output text
+
+          if [ "$STATUS" != "Success" ]; then
+            echo "----- STDERR -----"
+            aws ssm get-command-invocation \
+              --region "$AWS_REGION" \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$INSTANCE_ID" \
+              --query "StandardErrorContent" \
+              --output text
+
+            exit 1
+          fi        
