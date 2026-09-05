@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   ShoppingBag,
@@ -12,14 +13,29 @@ import {
   Lock,
   Layers,
   CheckCircle2,
+  User,
 } from "lucide-react";
 import { AnimeText } from "@/components/anime/AnimeText";
 import { AnimeCounter } from "@/components/anime/AnimeCounter";
 import { AnimeStagger } from "@/components/anime/AnimeStagger";
 import { AnimeButton } from "@/components/anime/AnimeButton";
 import { AnimeArchitectureVisualizer } from "@/components/anime/AnimeArchitectureVisualizer";
+import { User as UserType } from "@/types";
 
 export function LandingPage() {
+  // Query authenticated user to determine whether to show profile or signup CTA
+  const { data: authUser } = useQuery<UserType | null>({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const res = await fetch("/api/gateway/auth/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    retry: false,
+  });
+
+  const isLoggedIn = !!authUser;
+
   return (
     <div className="relative min-h-screen flex flex-col items-center overflow-hidden">
       {/* ── HERO SECTION ── */}
@@ -44,12 +60,20 @@ export function LandingPage() {
 
         {/* CTA Actions */}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-16">
-          <Link href="/signup">
-            <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto shadow-indigo-600/30">
-              Create Account <ArrowRight className="h-5 w-5" />
-            </AnimeButton>
-          </Link>
-          <Link href="/">
+          {isLoggedIn ? (
+            <Link href="/profile">
+              <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto shadow-indigo-600/30">
+                <User className="h-5 w-5 mr-1.5" /> View My Profile <ArrowRight className="h-5 w-5 ml-1" />
+              </AnimeButton>
+            </Link>
+          ) : (
+            <Link href="/signup">
+              <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto shadow-indigo-600/30">
+                Create Account <ArrowRight className="h-5 w-5 ml-1" />
+              </AnimeButton>
+            </Link>
+          )}
+          <Link href="/#catalog-section">
             <AnimeButton size="lg" variant="secondary" className="w-full sm:w-auto">
               Browse Catalog
             </AnimeButton>
@@ -69,112 +93,124 @@ export function LandingPage() {
           </div>
 
           <div className="flex flex-col items-center p-3 border-r border-slate-800 last:border-0">
-            <div className="flex items-center text-3xl sm:text-4xl font-black text-purple-400">
-              <AnimeCounter target={99.9} decimals={1} suffix="%" duration={2000} />
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-indigo-400">
+              <AnimeCounter target={3} duration={1500} />
+              <span className="text-indigo-400 ml-0.5">x</span>
             </div>
             <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
-              Saga Reliability
+              Datastores (PG/Mongo/Redis)
             </span>
           </div>
 
           <div className="flex flex-col items-center p-3 border-r border-slate-800 last:border-0">
-            <div className="flex items-center text-3xl sm:text-4xl font-black text-emerald-400">
-              <span className="text-emerald-400 mr-0.5">&lt;</span>
-              <AnimeCounter target={8} suffix="ms" duration={1800} />
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-pink-400">
+              <AnimeCounter target={100} duration={1800} />
+              <span className="text-pink-400 ml-0.5">%</span>
             </div>
             <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
-              Event Latency
+              Kafka KRaft Sagas
             </span>
           </div>
 
-          <div className="flex flex-col items-center p-3">
-            <div className="flex items-center text-3xl sm:text-4xl font-black text-pink-400">
-              <AnimeCounter target={100} suffix="%" duration={1600} />
+          <div className="flex flex-col items-center p-3 last:border-0">
+            <div className="flex items-center text-3xl sm:text-4xl font-black text-emerald-400">
+              <AnimeCounter target={24} duration={1200} />
+              <span className="text-emerald-400 ml-0.5">h</span>
             </div>
             <span className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
-              KRaft Event Driven
+              Redis TTL Carts
             </span>
           </div>
         </div>
 
-        {/* ── INTERACTIVE ARCHITECTURE VISUALIZER ── */}
-        <div className="w-full mb-24">
+        {/* ── INTERACTIVE ANIME ARCHITECTURE VISUALIZER ── */}
+        <div className="w-full mb-16">
           <AnimeArchitectureVisualizer />
         </div>
 
-        {/* ── CORE CAPABILITIES ── */}
-        <div className="w-full mb-24">
+        {/* ── CORE MICROSERVICES CAROUSEL / GRID ── */}
+        <div className="w-full mb-20 text-left">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
-              Engineered for Extreme Scalability
+              Built on Enterprise Foundations
             </h2>
             <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-              Every component is decoupled, containerized, and independently deployable.
+              Every request is orchestrated across dedicated containerized services with resilience and observability.
             </p>
           </div>
 
-          <AnimeStagger className="grid grid-cols-1 md:grid-cols-3 gap-6" delay={150}>
-            <div className="anime-stagger-item glass-card p-8 rounded-3xl border border-slate-800 flex flex-col text-left">
-              <div className="p-3.5 rounded-2xl bg-indigo-500/20 text-indigo-400 w-fit mb-5">
-                <Zap className="h-6 w-6" />
+          <AnimeStagger className="grid grid-cols-1 md:grid-cols-3 gap-6" staggerDelay={120}>
+            {/* Card 1 */}
+            <div className="anime-stagger-item glass-panel p-6 rounded-3xl border border-white/10 hover:border-cyan-500/50 transition-all group bg-slate-900/60 shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Server className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Transactional Outbox</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                Guaranteed at-least-once message delivery via PostgreSQL outbox tables, preventing distributed transaction inconsistency.
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">
+                Spring Cloud Gateway
+              </h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Central entry point enforcing JWT verification, route rate-limiting via Redis, and zero-trust perimeter security.
               </p>
-              <div className="mt-auto flex items-center gap-2 text-xs font-semibold text-indigo-400">
-                <CheckCircle2 className="h-4 w-4" /> Spring Boot + Hibernate
-              </div>
             </div>
 
-            <div className="anime-stagger-item glass-card p-8 rounded-3xl border border-slate-800 flex flex-col text-left">
-              <div className="p-3.5 rounded-2xl bg-purple-500/20 text-purple-400 w-fit mb-5">
+            {/* Card 2 */}
+            <div className="anime-stagger-item glass-panel p-6 rounded-3xl border border-white/10 hover:border-indigo-500/50 transition-all group bg-slate-900/60 shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Radio className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Kafka Event Saga</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                Asynchronous choreography between Order Service, FastAPI Payment Service, and Notification Workers with Redis SETNX idempotency.
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">
+                Kafka KRaft Event Bus
+              </h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Asynchronous saga orchestration between order, payment, and notification services without ZooKeeper bottlenecks.
               </p>
-              <div className="mt-auto flex items-center gap-2 text-xs font-semibold text-purple-400">
-                <CheckCircle2 className="h-4 w-4" /> Apache Kafka KRaft 4.2
-              </div>
             </div>
 
-            <div className="anime-stagger-item glass-card p-8 rounded-3xl border border-slate-800 flex flex-col text-left">
-              <div className="p-3.5 rounded-2xl bg-emerald-500/20 text-emerald-400 w-fit mb-5">
-                <Lock className="h-6 w-6" />
+            {/* Card 3 */}
+            <div className="anime-stagger-item glass-panel p-6 rounded-3xl border border-white/10 hover:border-pink-500/50 transition-all group bg-slate-900/60 shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-pink-500/10 text-pink-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Layers className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Stateless JWT Security</h3>
-              <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                Spring Cloud Gateway verifies HS256 tokens and enforces Redis-backed rate limiting while routing transparently to microservices.
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-pink-400 transition-colors">
+                Polyglot Persistence
+              </h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                ACID user and order records in PostgreSQL 18, dynamic catalog trees in MongoDB 8.0, and sub-millisecond carts in Redis 8.
               </p>
-              <div className="mt-auto flex items-center gap-2 text-xs font-semibold text-emerald-400">
-                <CheckCircle2 className="h-4 w-4" /> OAuth2 Resource Server
-              </div>
             </div>
           </AnimeStagger>
         </div>
 
-        {/* ── CALL TO ACTION BANNER ── */}
-        <div className="w-full glass-panel rounded-3xl p-8 sm:p-12 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-slate-900/80 shadow-2xl relative overflow-hidden flex flex-col items-center">
+        {/* ── BOTTOM CTA SECTION ── */}
+        <div className="w-full relative overflow-hidden rounded-3xl glass-panel border border-white/10 p-8 sm:p-12 text-center flex flex-col items-center shadow-2xl bg-gradient-to-b from-slate-900 via-indigo-950/20 to-slate-900">
           <div className="absolute top-0 right-1/4 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <Sparkles className="h-10 w-10 text-amber-400 mb-4 animate-bounce" />
           <h2 className="text-3xl sm:text-5xl font-black text-white mb-4">
-            Ready to experience the platform?
+            {isLoggedIn ? "Explore Your Nexora Experience" : "Ready to experience the platform?"}
           </h2>
           <p className="text-slate-300 text-sm sm:text-base max-w-lg mb-8">
-            Create an account or start exploring the catalog immediately.
+            {isLoggedIn
+              ? "Access your profile, telemetry, order status, and real-time Kafka event stream."
+              : "Create an account or start exploring the catalog immediately."}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <Link href="/signup">
-              <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto">
-                Get Started Now <ArrowRight className="h-4 w-4" />
-              </AnimeButton>
-            </Link>
-            <Link href="/">
+            {isLoggedIn ? (
+              <Link href="/profile">
+                <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto">
+                  <User className="h-4 w-4 mr-1.5" /> View My Profile <ArrowRight className="h-4 w-4 ml-1" />
+                </AnimeButton>
+              </Link>
+            ) : (
+              <Link href="/signup">
+                <AnimeButton size="lg" variant="primary" className="w-full sm:w-auto">
+                  Get Started Now <ArrowRight className="h-4 w-4 ml-1" />
+                </AnimeButton>
+              </Link>
+            )}
+            <Link href="/#catalog-section">
               <AnimeButton size="lg" variant="secondary" className="w-full sm:w-auto">
                 Explore Catalog
               </AnimeButton>

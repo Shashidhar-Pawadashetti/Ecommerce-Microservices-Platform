@@ -122,15 +122,21 @@ export function Navbar() {
           {user ? (
             <div className="flex items-center gap-3 border-l border-slate-800 pl-3 md:pl-4">
               <Link
-                href="/orders"
-                className="hidden sm:flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 transition-colors"
+                href="/profile"
+                className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 transition-colors"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="max-w-[120px] truncate">{user.email}</span>
               </Link>
+              <Link
+                href="/orders"
+                className="hidden sm:inline text-xs font-bold text-slate-300 hover:text-white px-2 py-1 transition-colors"
+              >
+                Orders
+              </Link>
               <button
                 onClick={handleLogout}
-                className="p-2 text-slate-400 hover:text-rose-400 transition-colors rounded-full hover:bg-rose-500/10"
+                className="p-2 text-slate-400 hover:text-rose-400 transition-colors rounded-full hover:bg-rose-500/10 cursor-pointer"
                 title="Log out"
               >
                 <LogOut className="h-4 w-4" />

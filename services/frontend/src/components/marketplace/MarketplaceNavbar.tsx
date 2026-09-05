@@ -248,11 +248,19 @@ export function MarketplaceNavbar() {
 
                     <div className="py-2 space-y-1">
                       <Link
+                        href="/profile"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
+                      >
+                        <User className="h-4 w-4 text-cyan-400" />
+                        <span>Your Nexora Profile</span>
+                      </Link>
+                      <Link
                         href="/orders"
                         onClick={() => setIsAccountOpen(false)}
                         className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 text-slate-200 font-semibold transition-colors"
                       >
-                        <Package className="h-4 w-4 text-cyan-400" />
+                        <Package className="h-4 w-4 text-indigo-400" />
                         <span>Your Orders & Shipments</span>
                       </Link>
                       <Link
@@ -406,6 +414,89 @@ export function MarketplaceNavbar() {
           <span>KRaft 4.2 Event Bus Active</span>
         </div>
       </div>
+
+      {/* ── MOBILE MENU DRAWER ── */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-slate-900 border-b border-white/10 px-4 py-4 space-y-3 animate-in slide-in-from-top-4 duration-200">
+          {/* User Status Bar */}
+          {isLoggedIn ? (
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white text-sm">
+                  {userProfile?.fullName || authUser?.email?.split("@")[0] || "Nexora Shopper"}
+                </span>
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Signed In
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 truncate">{authUser?.email}</p>
+
+              <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2">
+                <Link
+                  href="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-cyan-500/20 text-cyan-300 font-bold text-xs"
+                >
+                  <User className="h-3.5 w-3.5" /> My Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-500/15 text-rose-400 font-bold text-xs cursor-pointer"
+                >
+                  <LogOut className="h-3.5 w-3.5" /> Sign Out
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 pb-2 border-b border-white/10">
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 font-bold text-xs text-center shadow-md"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs text-center border border-white/10"
+              >
+                Create Account
+              </Link>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <div className="space-y-1 text-xs font-bold text-slate-300">
+            {isLoggedIn && (
+              <Link
+                href="/profile"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-slate-200"
+              >
+                <User className="h-4 w-4 text-cyan-400" /> Account Profile & Settings
+              </Link>
+            )}
+            <Link
+              href="/orders"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-slate-200"
+            >
+              <Package className="h-4 w-4 text-indigo-400" /> Track Orders & Shipments
+            </Link>
+            <Link
+              href="/cart"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white/5 text-slate-200"
+            >
+              <ShoppingCart className="h-4 w-4 text-emerald-400" /> View Shopping Cart
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Deliver To Location Modal */}
       {isLocationModalOpen && (

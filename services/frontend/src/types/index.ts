@@ -146,6 +146,8 @@ export interface PriceDropAlert {
 export interface User {
   id: string;
   email: string;
+  roles?: string[];
   role?: string;
+  createdAt?: string;
 }
 

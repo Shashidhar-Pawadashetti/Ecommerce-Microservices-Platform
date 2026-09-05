@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Mail,
   Lock,
@@ -18,9 +19,11 @@ import {
   ShieldCheck,
   MapPin,
   Gift,
+  LogOut,
 } from "lucide-react";
 import { AnimeButton } from "@/components/anime/AnimeButton";
 import { useStore } from "@/providers/StoreContext";
+import { User as UserType } from "@/types";
 
 const REGIONAL_HUBS = [
   { id: "seattle", city: "Seattle", zipCode: "98101", label: "Seattle, WA (US-West Main Hub)" },
@@ -32,7 +35,19 @@ const REGIONAL_HUBS = [
 
 export default function SignupPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setLocation, setUserProfile, showToast } = useStore();
+
+  // Guard against authenticated users accessing signup form
+  const { data: authUser, isLoading: isCheckingAuth } = useQuery<UserType | null>({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const res = await fetch("/api/gateway/auth/me");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    retry: false,
+  });
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -163,6 +178,52 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUserProfile(null);
+    queryClient.setQueryData(["auth-user"], null);
+    queryClient.setQueryData(["cart"], null);
+    queryClient.invalidateQueries();
+    router.refresh();
+  };
+
+  if (authUser) {
+    return (
+      <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-12">
+        <div className="relative z-10 w-full max-w-md p-8 sm:p-10 glass-panel bg-slate-900/95 rounded-3xl shadow-2xl border border-white/[0.08] text-center animate-in fade-in">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 text-slate-950 shadow-lg shadow-cyan-500/30">
+            <CheckCircle2 className="h-8 w-8" />
+          </div>
+          <h1 className="text-2xl font-black text-white mb-2">Already Signed In</h1>
+          <p className="text-xs text-slate-400 mb-2">
+            You currently have an active authenticated session as:
+          </p>
+          <p className="font-bold text-cyan-300 text-sm mb-6 bg-slate-800/80 py-2.5 px-4 rounded-xl border border-cyan-500/20 truncate">
+            {authUser.email}
+          </p>
+          <div className="space-y-3">
+            <Link href="/profile" className="block w-full">
+              <AnimeButton variant="primary" className="w-full">
+                Go to My Profile <ArrowRight className="h-4 w-4 ml-1" />
+              </AnimeButton>
+            </Link>
+            <Link href="/" className="block w-full">
+              <AnimeButton variant="secondary" className="w-full">
+                Continue Shopping
+              </AnimeButton>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full py-2.5 px-4 text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-2xl border border-rose-500/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Sign Out to Create Different Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-12">
